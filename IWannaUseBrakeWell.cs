@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -59,6 +60,24 @@ class IWannaUseBrakeWell: Form
 	private NumericUpDown noConsecutiveOperationNumericUpDown;
 	private Label speedLimitMarginTitleLabel, speedLimitMarginUnitLabel;
 	private NumericUpDown speedLimitMarginNumericUpDown;
+
+	private Timer timer = null;
+	private Stopwatch stopwatch;
+	private bool trainCrewValid = false;
+
+	private struct SpeedInfo
+	{
+		public readonly long Time;
+		public readonly float Speed;
+
+		public SpeedInfo(long time, float speed)
+		{
+			Time = time;
+			Speed = speed;
+		}
+	}
+	private readonly Queue<SpeedInfo> speedInfoQueue = new Queue<SpeedInfo>();
+	private SpeedInfo? accelSample = null;
 
 	public IWannaUseBrakeWell()
 	{
@@ -197,5 +216,60 @@ class IWannaUseBrakeWell: Form
 		configX += 2;
 
 		ResumeLayout();
+
+		Shown += ShownHandler;
+	}
+
+	private void ShownHandler(object sender, EventArgs e)
+	{
+		TrainCrewInput.Init();
+		trainCrewValid = true;
+		stopwatch = new Stopwatch();
+		stopwatch.Start();
+		timer = new Timer();
+		timer.Interval = 15;
+		timer.Tick += TickHandler;
+		timer.Start();
+	}
+
+	private void FormClosedHandler(object sender, EventArgs e)
+	{
+		if (timer != null) timer.Stop();
+		trainCrewValid = false;
+		TrainCrewInput.Dispose();
+	}
+
+	private void TickHandler(object sender, EventArgs e)
+	{
+		if (!trainCrewValid) return;
+		long currentTime = stopwatch.ElapsedMilliseconds;
+		TrainState trainState = TrainCrewInput.GetTrainState();
+		float currentSpeed = trainState.Speed / 3.6f;
+		currentSpeedLabel.Text = string.Format("{0:0.00} m/s", currentSpeed);
+		while (speedInfoQueue.Count > 0)
+		{
+			if (!accelSample.HasValue ||
+				currentTime - accelSampleIntervalNumericUpDown.Value >= speedInfoQueue.Peek().Time)
+			{
+				accelSample = speedInfoQueue.Dequeue();
+			}
+			else
+			{
+				break;
+			}
+		}
+		SpeedInfo currentSpeedInfo = new SpeedInfo(currentTime, currentSpeed);
+		speedInfoQueue.Enqueue(currentSpeedInfo);
+		float? currentAccel = null;
+		if (!accelSample.HasValue || accelSample.Value.Time >= currentSpeedInfo.Time)
+		{
+			currentAccelLabel.Text = "###.## m/s²";
+		}
+		else
+		{
+			currentAccel = (currentSpeedInfo.Speed - accelSample.Value.Speed) /
+				(currentSpeedInfo.Time - accelSample.Value.Time) * 1000;
+			currentAccelLabel.Text = string.Format("{0:0.00} m/s²", currentAccel);
+		}
 	}
 }
