@@ -271,5 +271,26 @@ class IWannaUseBrakeWell: Form
 				(currentSpeedInfo.Time - accelSample.Value.Time) * 1000;
 			currentAccelLabel.Text = string.Format("{0:0.00} m/s²", currentAccel);
 		}
+		float? distance = "停車".Equals(trainState.nextStopType) || "運転停車".Equals(trainState.nextStopType) ? (float?)trainState.nextUIDistance : null;
+		if (distance.HasValue)
+		{
+			currentDistanceLabel.Text = string.Format("{0:0.00} m", distance);
+		}
+		else
+		{
+			currentDistanceLabel.Text = "#####.## m";
+		}
+		float toStop =
+			currentSpeed == 0 ? 0 :
+			currentAccel.HasValue && currentAccel.Value < 0 ? (currentSpeed * currentSpeed / (2 * -currentAccel.Value)) :
+			Single.PositiveInfinity;
+		if (toStop < 10000)
+		{
+			currentStopPredictLabel.Text = string.Format("{0:0.00} m", toStop);
+		}
+		else
+		{
+			currentStopPredictLabel.Text = "∞ m";
+		}
 	}
 }
