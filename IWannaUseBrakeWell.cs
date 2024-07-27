@@ -179,7 +179,7 @@ class IWannaUseBrakeWell: Form
 		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, configX, 1, 3, 1);
 		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
 		accelSampleIntervalNumericUpDown.Minimum = 0;
-		accelSampleIntervalNumericUpDown.Value = 100;
+		accelSampleIntervalNumericUpDown.Value = 300;
 		accelSampleIntervalNumericUpDown.Increment = 10;
 		configX += 3;
 		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, configX, 1, 1.25f, 1);
@@ -291,6 +291,42 @@ class IWannaUseBrakeWell: Form
 		else
 		{
 			currentStopPredictLabel.Text = "∞ m";
+		}
+		float speedLimit, speedLimitDistance;
+		if (trainState.nextSpeedLimit >= 0)
+		{
+			speedLimit = trainState.nextSpeedLimit;
+			speedLimitDistance = trainState.nextSpeedLimitDistance;
+		}
+		else
+		{
+			speedLimit = trainState.speedLimit;
+			speedLimitDistance = 0;
+		}
+		speedLimit -= (float)speedLimitMarginNumericUpDown.Value;
+		if (speedLimit <= 0) speedLimit = 0;
+		speedLimit /= 3.6f;
+		currentLimitDistanceLabel.Text = string.Format("{0:0.00} m", speedLimitDistance);
+		float toBelowLimit;
+		if (currentSpeed <= speedLimit)
+		{
+			toBelowLimit = 0;
+		}
+		else if (!currentAccel.HasValue || currentAccel.Value >= 0)
+		{
+			toBelowLimit = Single.PositiveInfinity;
+		}
+		else
+		{
+			toBelowLimit = (currentSpeed * currentSpeed - speedLimit * speedLimit) / (2 * -currentAccel.Value);
+		}
+		if (toBelowLimit < 10000)
+		{
+			currentBelowLimitPredictLabel.Text = string.Format("{0:0.00} m", toBelowLimit);
+		}
+		else
+		{
+			currentBelowLimitPredictLabel.Text = "∞ m";
 		}
 	}
 }
