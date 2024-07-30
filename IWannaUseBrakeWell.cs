@@ -78,6 +78,9 @@ class IWannaUseBrakeWell: Form
 	}
 	private readonly Queue<SpeedInfo> speedInfoQueue = new Queue<SpeedInfo>();
 	private SpeedInfo? accelSample = null;
+	private float?[] accelByBrakes = new float?[9];
+	private float?[] toStopByBrakes = new float?[9];
+	private float?[] toBelowLimitByBrakes = new float?[9];
 
 	public IWannaUseBrakeWell()
 	{
@@ -327,6 +330,47 @@ class IWannaUseBrakeWell: Form
 		else
 		{
 			currentBelowLimitPredictLabel.Text = "∞ m";
+		}
+		int currentBrakeInput = trainState.Bnotch;
+		int currentBrake = currentBrakeInput; // TODO: ATOを考慮
+		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9)
+		{
+			accelByBrakes[currentBrake] = currentAccel;
+		}
+		for (int i = 0; i < 9; i++)
+		{
+			if (i == currentBrake)
+			{
+				brakeInfoPanels[i].BackColor = Color.Aqua;
+			}
+			else
+			{
+				brakeInfoPanels[i].BackColor = Panel.DefaultBackColor;
+			}
+			if (accelByBrakes[i].HasValue)
+			{
+				toStopByBrakes[i] =
+					currentSpeed == 0 ? 0 :
+					accelByBrakes[i].Value < 0 ? (currentSpeed * currentSpeed / (2 * -accelByBrakes[i].Value)) :
+					Single.PositiveInfinity;
+				toBelowLimitByBrakes[i] =
+					currentSpeed <= speedLimit ? 0 :
+					accelByBrakes[i].Value < 0 ? ((currentSpeed * currentSpeed - speedLimit * speedLimit) / (2 * -accelByBrakes[i].Value)) :
+					Single.PositiveInfinity;
+				brakeInfoAccelLabel[i].Text = string.Format("{0:0.00} m/s²", accelByBrakes[i]);
+				brakeInfoStopDistLabel[i].Text = toStopByBrakes[i].Value < 10000 ?
+					string.Format("{0:0.00} m", toStopByBrakes[i]) : "∞ m";
+				brakeInfoLimitDistLabel[i].Text = toBelowLimitByBrakes[i].Value < 10000 ?
+					string.Format("{0:0.00} m", toBelowLimitByBrakes[i]) : "∞ m";
+			}
+			else
+			{
+				toStopByBrakes[i] = null;
+				toBelowLimitByBrakes[i] = null;
+				brakeInfoAccelLabel[i].Text = "###.## m/s²";
+				brakeInfoStopDistLabel[i].Text = "#####.## m";
+				brakeInfoLimitDistLabel[i].Text = "#####.## m";
+			}
 		}
 	}
 }
