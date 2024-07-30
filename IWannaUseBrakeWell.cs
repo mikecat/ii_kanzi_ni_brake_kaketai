@@ -86,6 +86,8 @@ class IWannaUseBrakeWell: Form
 	private float?[] toStopByBrakes = new float?[9];
 	private float?[] toBelowLimitByBrakes = new float?[9];
 
+	private int prevATOBrake = -99, currentATOBrake = 0;
+
 	public IWannaUseBrakeWell()
 	{
 		this.Text = "いい感じにブレーキをかけたい";
@@ -243,6 +245,7 @@ class IWannaUseBrakeWell: Form
 	{
 		if (timer != null) timer.Stop();
 		trainCrewValid = false;
+		TrainCrewInput.SetATO_Notch(0);
 		TrainCrewInput.Dispose();
 	}
 
@@ -345,7 +348,7 @@ class IWannaUseBrakeWell: Form
 
 		// ブレーキの状態と、ブレーキの状態ごとの加速度の情報を求める
 		int currentBrakeInput = trainState.Bnotch;
-		int currentBrake = currentBrakeInput; // TODO: ATOを考慮
+		int currentBrake = currentATOBrake < currentBrakeInput ? currentBrakeInput : currentATOBrake;
 		// ブレーキの操作・状態の取得に適した状態かをチェックする
 		bool currentGaming =
 			gameState.gameScreen == GameScreen.MainGame ||
@@ -384,10 +387,12 @@ class IWannaUseBrakeWell: Form
 		long timeFromBrakeChange = currentTime - prevBrakeChangedTime;
 		long timeFromGameStart = currentTime - prevGameStartTime;
 		long timeFromPauseEnd = currentTime - prevPauseEndTime;
-		bool brakeChangeAllowed =
+		bool brakeAllowed =
 			trainState.Pnotch == 0 && // マスコンが「切」状態
 			trainState.Reverser > 0 && // レバーサが「前進」状態
-			timeFromPowerChange >= noConsecutiveOperationNumericUpDown.Value && // マスコン変更直後でない
+			timeFromPowerChange >= noConsecutiveOperationNumericUpDown.Value; // マスコン変更直後でない
+		bool brakeChangeAllowed =
+			brakeAllowed &&
 			timeFromBrakeChange >= noConsecutiveOperationNumericUpDown.Value && // ブレーキ変更直後でない
 			currentGaming && // ゲーム中である
 			!currentPaused && // ポーズ中でない
@@ -402,6 +407,10 @@ class IWannaUseBrakeWell: Form
 		for (int i = 0; i < 9; i++)
 		{
 			if (i == currentBrake)
+			{
+				brakeInfoPanels[i].BackColor = Color.LightSalmon;
+			}
+			else if (i == currentBrakeInput)
 			{
 				brakeInfoPanels[i].BackColor = Color.Aqua;
 			}
@@ -433,6 +442,52 @@ class IWannaUseBrakeWell: Form
 				brakeInfoStopDistLabel[i].Text = "#####.## m";
 				brakeInfoLimitDistLabel[i].Text = "#####.## m";
 			}
+		}
+
+		// 自動ブレーキの判定を行う
+		if (useAutoBrakeCheckBox.Checked && brakeAllowed)
+		{
+			if (brakeChangeAllowed)
+			{
+				if ((!distance.HasValue || distance.Value >= toStop) && speedLimitDistance >= toBelowLimit)
+				{
+					// 今のままで目標地点かそれより前に条件を満たせそう
+					float? nextToStop = null, nextToBelowLimit = null;
+					for (int i = currentBrake - 1; i >= 0; i--)
+					{
+						if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+						{
+							nextToStop = toStopByBrakes[i];
+							nextToBelowLimit = toBelowLimitByBrakes[i];
+							break;
+						}
+					}
+					if (nextToStop.HasValue && nextToBelowLimit.HasValue)
+					{
+						if ((!distance.HasValue || distance.Value >= nextToStop.Value) &&
+							speedLimitDistance >= nextToBelowLimit.Value)
+						{
+							// ブレーキを弱めても条件を満たせそうなら、弱める
+							currentATOBrake = currentBrake - 1;
+						}
+					}
+				}
+				else
+				{
+					// 今のままだと過走/制限速度超過しそう
+					// ブレーキを強くする (強くできる場合)
+					if (currentBrake < 8) currentATOBrake = currentBrake + 1;
+				}
+			}
+		}
+		else
+		{
+			currentATOBrake = 0;
+		}
+		if (currentATOBrake != prevATOBrake)
+		{
+			TrainCrewInput.SetATO_Notch(-currentATOBrake);
+			prevATOBrake = currentATOBrake;
 		}
 	}
 }
