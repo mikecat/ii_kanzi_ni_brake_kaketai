@@ -247,6 +247,8 @@ class IWannaUseBrakeWell: Form
 		if (!trainCrewValid) return;
 		long currentTime = stopwatch.ElapsedMilliseconds;
 		TrainState trainState = TrainCrewInput.GetTrainState();
+
+		// 現在の速度と加速度の情報を取得・表示する
 		float currentSpeed = trainState.Speed / 3.6f;
 		currentSpeedLabel.Text = string.Format("{0:0.00} m/s", currentSpeed);
 		while (speedInfoQueue.Count > 0)
@@ -274,6 +276,8 @@ class IWannaUseBrakeWell: Form
 				(currentSpeedInfo.Time - accelSample.Value.Time) * 1000;
 			currentAccelLabel.Text = string.Format("{0:0.00} m/s²", currentAccel);
 		}
+
+		// 停車するべき位置までの距離と、停車しそうな位置までの距離を求める
 		float? distance = "停車".Equals(trainState.nextStopType) || "運転停車".Equals(trainState.nextStopType) ? (float?)trainState.nextUIDistance : null;
 		if (distance.HasValue)
 		{
@@ -295,6 +299,8 @@ class IWannaUseBrakeWell: Form
 		{
 			currentStopPredictLabel.Text = "∞ m";
 		}
+
+		// 制限速度・制限開始までの距離、制限を満たすまでの距離を求める
 		float speedLimit, speedLimitDistance;
 		if (trainState.nextSpeedLimit >= 0)
 		{
@@ -331,6 +337,8 @@ class IWannaUseBrakeWell: Form
 		{
 			currentBelowLimitPredictLabel.Text = "∞ m";
 		}
+
+		// ブレーキの状態と、ブレーキの状態ごとの加速度の情報を求める
 		int currentBrakeInput = trainState.Bnotch;
 		int currentBrake = currentBrakeInput; // TODO: ATOを考慮
 		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9)
