@@ -64,6 +64,10 @@ class IWannaUseBrakeWell: Form
 	private Timer timer = null;
 	private Stopwatch stopwatch;
 	private bool trainCrewValid = false;
+	private int prevPower = -99, prevBrake = -99;
+	private long prevPowerChangedTime = 0, prevBrakeChangedTime = 0;
+	private bool prevGaming = false, prevPaused = false;
+	private long prevGameStartTime = 0, prevPauseEndTime = 0;
 
 	private struct SpeedInfo
 	{
@@ -247,6 +251,7 @@ class IWannaUseBrakeWell: Form
 		if (!trainCrewValid) return;
 		long currentTime = stopwatch.ElapsedMilliseconds;
 		TrainState trainState = TrainCrewInput.GetTrainState();
+		GameState gameState = TrainCrewInput.gameState;
 
 		// 現在の速度と加速度の情報を取得・表示する
 		float currentSpeed = trainState.Speed / 3.6f;
@@ -341,8 +346,57 @@ class IWannaUseBrakeWell: Form
 		// ブレーキの状態と、ブレーキの状態ごとの加速度の情報を求める
 		int currentBrakeInput = trainState.Bnotch;
 		int currentBrake = currentBrakeInput; // TODO: ATOを考慮
-		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9)
+		// ブレーキの操作・状態の取得に適した状態かをチェックする
+		bool currentGaming =
+			gameState.gameScreen == GameScreen.MainGame ||
+			gameState.gameScreen == GameScreen.MainGame_Pause;
+		bool currentPaused = gameState.gameScreen == GameScreen.MainGame_Pause;
+		if (trainState.Pnotch != prevPower)
 		{
+			prevPower = trainState.Pnotch;
+			prevPowerChangedTime = currentTime;
+		}
+		if (currentBrake != prevBrake)
+		{
+			prevBrake = currentBrake;
+			prevBrakeChangedTime = currentTime;
+		}
+		if (currentGaming != prevGaming)
+		{
+			prevGaming = currentGaming;
+			if (currentGaming)
+			{
+				prevGameStartTime = currentTime;
+				// ゲーム開始時、各ブレーキの情報をリセットする
+				for (int i = 0; i < 9; i++)
+				{
+					toStopByBrakes[i] = null;
+					toBelowLimitByBrakes[i] = null;
+				}
+			}
+		}
+		if (currentPaused != prevPaused)
+		{
+			prevPaused = currentPaused;
+			if (!currentPaused) prevPauseEndTime = currentTime;
+		}
+		long timeFromPowerChange = currentTime - prevPowerChangedTime;
+		long timeFromBrakeChange = currentTime - prevBrakeChangedTime;
+		long timeFromGameStart = currentTime - prevGameStartTime;
+		long timeFromPauseEnd = currentTime - prevPauseEndTime;
+		bool brakeChangeAllowed =
+			trainState.Pnotch == 0 && // マスコンが「切」状態
+			trainState.Reverser > 0 && // レバーサが「前進」状態
+			timeFromPowerChange >= noConsecutiveOperationNumericUpDown.Value && // マスコン変更直後でない
+			timeFromBrakeChange >= noConsecutiveOperationNumericUpDown.Value && // ブレーキ変更直後でない
+			currentGaming && // ゲーム中である
+			!currentPaused && // ポーズ中でない
+			timeFromGameStart >= noConsecutiveOperationNumericUpDown.Value && // ゲーム開始直後でない
+			timeFromPauseEnd >= noConsecutiveOperationNumericUpDown.Value; // ポーズ解除直後でない
+		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9 &&
+			brakeChangeAllowed && currentSpeed >= 1)
+		{
+			// ブレーキの効果の安定が期待できる状態で、かつ1m/s以上で走っている場合のみ、加速度を更新する
 			accelByBrakes[currentBrake] = currentAccel;
 		}
 		for (int i = 0; i < 9; i++)
