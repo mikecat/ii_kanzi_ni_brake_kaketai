@@ -373,6 +373,7 @@ class IWannaUseBrakeWell: Form
 				// ゲーム開始時、各ブレーキの情報をリセットする
 				for (int i = 0; i < 9; i++)
 				{
+					accelByBrakes[i] = null;
 					toStopByBrakes[i] = null;
 					toBelowLimitByBrakes[i] = null;
 				}
