@@ -465,11 +465,15 @@ class IWannaUseBrakeWell: Form
 					}
 					if (nextToStop.HasValue && nextToBelowLimit.HasValue)
 					{
-						if ((!distance.HasValue || distance.Value >= nextToStop.Value) &&
-							speedLimitDistance >= nextToBelowLimit.Value)
+						if (speedLimitDistance >= nextToBelowLimit.Value)
 						{
-							// ブレーキを弱めても条件を満たせそうなら、弱める
-							currentATOBrake = currentBrake - 1;
+							if (!distance.HasValue || distance.Value >= nextToStop.Value ||
+								distance.Value - 1 > toStop)
+							{
+								// ブレーキを弱めても条件を満たせそうなら、弱める
+								// または、今のままだと1mより手前に停車しそうなら、弱める
+								currentATOBrake = currentBrake - 1;
+							}
 						}
 					}
 				}
@@ -477,7 +481,25 @@ class IWannaUseBrakeWell: Form
 				{
 					// 今のままだと過走/制限速度超過しそう
 					// ブレーキを強くする (強くできる場合)
-					if (currentBrake < 8) currentATOBrake = currentBrake + 1;
+					if (currentBrake < 8)
+					{
+						float? nextToStop = null;
+						for (int i = currentBrake + 1; i < 9; i++)
+						{
+							if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+							{
+								nextToStop = toStopByBrakes[i];
+								break;
+							}
+						}
+						// 停車の場合、ブレーキを強めても1m以内に止まれそうまたは不明な場合のみ、強める
+						if (speedLimitDistance < toBelowLimit ||
+							!nextToStop.HasValue ||
+							(distance.HasValue && distance.Value - 1 <= nextToStop.Value))
+						{
+							currentATOBrake = currentBrake + 1;
+						}
+					}
 				}
 			}
 		}
