@@ -53,11 +53,24 @@ class IWannaUseBrakeWell: Form
 	private Label currentBelowLimitPredictTitleLabel, currentBelowLimitPredictLabel;
 
 	private GroupBox configGroupBox;
+
 	private CheckBox useAutoBrakeCheckBox;
-	private Label accelSampleIntervalTitleLabel, accelSampleIntervalUnitLabel;
-	private NumericUpDown accelSampleIntervalNumericUpDown;
+	private CheckBox brakeOnlyWithManualCheckBox;
+	private CheckBox allowUsingEBCheckBox;
 	private Label noConsecutiveOperationTitleLabel, noConsecutiveOperationUnitLabel;
 	private NumericUpDown noConsecutiveOperationNumericUpDown;
+
+	private Label accelSampleIntervalTitleLabel, accelSampleIntervalUnitLabel;
+	private NumericUpDown accelSampleIntervalNumericUpDown;
+	private Label accelDataBlendTitleLabel, accelDataBlendUnitLabel;
+	private NumericUpDown accelDataBlendNumericUpDown;
+	private Label accelRecordLimitTitleLabel, accelRecordLimitUnitLabel;
+	private NumericUpDown accelRecordLimitNumericUpDown;
+
+	private Label noStopTooEarlyTitleLabel, noStopTooEarlyUnitLabel;
+	private NumericUpDown noStopTooEarlyNumericUpDown;
+	private Label noBelowLimitTooEarlyTitleLabel, noBelowLimitTooEarlyUnitLabel;
+	private NumericUpDown noBelowLimitTooEarlyNumericUpDown;
 	private Label speedLimitMarginTitleLabel, speedLimitMarginUnitLabel;
 	private NumericUpDown speedLimitMarginNumericUpDown;
 
@@ -94,7 +107,7 @@ class IWannaUseBrakeWell: Form
 		this.Font = new Font("MS UI Gothic", fontSize, GraphicsUnit.Pixel);
 		this.FormBorderStyle = FormBorderStyle.FixedSingle;
 		this.MaximizeBox = false;
-		this.ClientSize = GetSizeOnGrid(40.5f, 15.5f);
+		this.ClientSize = GetSizeOnGrid(40.5f, 18.5f);
 		Font doubleFont = new Font("MS UI Gothic", fontSize * 2, GraphicsUnit.Pixel);
 
 		SuspendLayout();
@@ -173,56 +186,102 @@ class IWannaUseBrakeWell: Form
 		currentBelowLimitPredictLabel.Font = doubleFont;
 		currentBelowLimitPredictLabel.TextAlign = ContentAlignment.TopRight;
 
-		configGroupBox = CreateControl<GroupBox>(this, 0.5f, 12.5f, 39.5f, 2.5f);
+		configGroupBox = CreateControl<GroupBox>(this, 0.5f, 12.5f, 39.5f, 5.5f);
 		configGroupBox.Text = "設定";
 
-		float configX = 0.5f;
-		useAutoBrakeCheckBox = CreateControl<CheckBox>(configGroupBox, configX, 1,7.25f, 1);
+		useAutoBrakeCheckBox = CreateControl<CheckBox>(configGroupBox, 0.5f, 1, 9, 1);
 		useAutoBrakeCheckBox.Text = "自動ブレーキを使用";
-		configX += 7.25f;
+		brakeOnlyWithManualCheckBox = CreateControl<CheckBox>(configGroupBox, 9.5f, 1, 9, 1);
+		brakeOnlyWithManualCheckBox.Text = "手動ブレーキ時のみ";
+		allowUsingEBCheckBox = CreateControl<CheckBox>(configGroupBox, 18.5f, 1, 8, 1);
+		allowUsingEBCheckBox.Text = "EBの使用を許可";
 
-		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, configX, 1, 7.25f, 1);
-		accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
-		accelSampleIntervalTitleLabel.TextAlign = ContentAlignment.TopRight;
-		configX += 7.25f;
-		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, configX, 1, 3, 1);
-		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
-		accelSampleIntervalNumericUpDown.Minimum = 0;
-		accelSampleIntervalNumericUpDown.Value = 300;
-		accelSampleIntervalNumericUpDown.Increment = 10;
-		configX += 3;
-		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, configX, 1, 1.25f, 1);
-		accelSampleIntervalUnitLabel.Text = "ms";
-		configX += 1.25f;
-
-		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, configX, 1, 5.25f, 1);
+		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, 27, 1, 6, 1);
 		noConsecutiveOperationTitleLabel.Text = "連続操作制限";
-		noConsecutiveOperationTitleLabel.TextAlign = ContentAlignment.TopRight;
-		configX += 5.25f;
-		noConsecutiveOperationNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, configX, 1, 3, 1);
+		noConsecutiveOperationTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		noConsecutiveOperationNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 1, 3, 1);
 		noConsecutiveOperationNumericUpDown.Maximum = Decimal.MaxValue;
 		noConsecutiveOperationNumericUpDown.Minimum = 0;
 		noConsecutiveOperationNumericUpDown.Value = 500;
 		noConsecutiveOperationNumericUpDown.Increment = 10;
-		configX += 3;
-		noConsecutiveOperationUnitLabel = CreateControl<Label>(configGroupBox, configX, 1, 1.25f, 1);
+		noConsecutiveOperationUnitLabel = CreateControl<Label>(configGroupBox, 36, 1, 2, 1);
 		noConsecutiveOperationUnitLabel.Text = "ms";
-		configX += 1.25f;
 
-		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, configX, 1, 5.25f, 1);
+		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 2.5f, 8, 1);
+		accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
+		accelSampleIntervalTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 2.5f, 4, 1);
+		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
+		accelSampleIntervalNumericUpDown.Minimum = 0;
+		accelSampleIntervalNumericUpDown.Value = 300;
+		accelSampleIntervalNumericUpDown.Increment = 10;
+		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 2, 1);
+		accelSampleIntervalUnitLabel.Text = "ms";
+		accelSampleIntervalUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		accelDataBlendTitleLabel = CreateControl<Label>(configGroupBox, 15, 2.5f, 7, 1);
+		accelDataBlendTitleLabel.Text = "加速度データブレンド";
+		accelDataBlendTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		accelDataBlendNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
+		accelDataBlendNumericUpDown.Maximum = 100;
+		accelDataBlendNumericUpDown.Minimum = 0;
+		accelDataBlendNumericUpDown.Value = 10;
+		accelDataBlendNumericUpDown.Increment = 1;
+		accelDataBlendNumericUpDown.DecimalPlaces = 1;
+		accelDataBlendUnitLabel = CreateControl<Label>(configGroupBox, 26, 2.5f, 1, 1);
+		accelDataBlendUnitLabel.Text = "%";
+		accelDataBlendUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		accelRecordLimitTitleLabel = CreateControl<Label>(configGroupBox, 27, 2.5f, 6, 1);
+		accelRecordLimitTitleLabel.Text = "加速度記録制限";
+		accelRecordLimitTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		accelRecordLimitNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 2.5f, 3, 1);
+		accelRecordLimitNumericUpDown.Maximum = Decimal.MaxValue;
+		accelRecordLimitNumericUpDown.Minimum = 0;
+		accelRecordLimitNumericUpDown.Value = 500;
+		accelRecordLimitNumericUpDown.Increment = 10;
+		accelRecordLimitUnitLabel = CreateControl<Label>(configGroupBox, 36, 2.5f, 2, 1);
+		accelRecordLimitUnitLabel.Text = "ms";
+		accelRecordLimitUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		noStopTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 4, 8, 1);
+		noStopTooEarlyTitleLabel.Text = "停車制限";
+		noStopTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		noStopTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 4, 4, 1);
+		noStopTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
+		noStopTooEarlyNumericUpDown.Minimum = 0;
+		noStopTooEarlyNumericUpDown.Value = 1;
+		noStopTooEarlyNumericUpDown.Increment = 0.1M;
+		noStopTooEarlyNumericUpDown.DecimalPlaces = 2;
+		noStopTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 4, 1, 1);
+		noStopTooEarlyUnitLabel.Text = "m";
+		noStopTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 15, 4, 7, 1);
+		noBelowLimitTooEarlyTitleLabel.Text = "速度制限充足制限";
+		noBelowLimitTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		noBelowLimitTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 4, 4, 1);
+		noBelowLimitTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
+		noBelowLimitTooEarlyNumericUpDown.Minimum = 0;
+		noBelowLimitTooEarlyNumericUpDown.Value = 1;
+		noBelowLimitTooEarlyNumericUpDown.Increment = 0.1M;
+		noBelowLimitTooEarlyNumericUpDown.DecimalPlaces = 2;
+		noBelowLimitTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 26, 4, 1, 1);
+		noBelowLimitTooEarlyUnitLabel.Text = "m";
+		noBelowLimitTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, 27, 4, 6, 1);
 		speedLimitMarginTitleLabel.Text = "速度制限余裕";
-		speedLimitMarginTitleLabel.TextAlign = ContentAlignment.TopRight;
-		configX += 5.25f;
-		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, configX, 1, 3, 1);
+		speedLimitMarginTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 4, 3, 1);
 		speedLimitMarginNumericUpDown.Maximum = Decimal.MaxValue;
 		speedLimitMarginNumericUpDown.Minimum = 0;
 		speedLimitMarginNumericUpDown.Value = 0.5M;
-		speedLimitMarginNumericUpDown.Increment = 1;
+		speedLimitMarginNumericUpDown.Increment = 0.1M;
 		speedLimitMarginNumericUpDown.DecimalPlaces = 1;
-		configX += 3;
-		speedLimitMarginUnitLabel = CreateControl<Label>(configGroupBox, configX, 1, 2, 1);
+		speedLimitMarginUnitLabel = CreateControl<Label>(configGroupBox, 36, 4, 2, 1);
 		speedLimitMarginUnitLabel.Text = "km/h";
-		configX += 2;
+		speedLimitMarginUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
 		ResumeLayout();
 
