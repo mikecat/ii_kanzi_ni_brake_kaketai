@@ -81,6 +81,7 @@ class IWannaUseBrakeWell: Form
 	private long prevPowerChangedTime = 0, prevBrakeChangedTime = 0;
 	private bool prevGaming = false, prevPaused = false;
 	private long prevGameStartTime = 0, prevPauseEndTime = 0;
+	private float prevAccel = 0;
 
 	private struct SpeedInfo
 	{
@@ -341,6 +342,9 @@ class IWannaUseBrakeWell: Form
 		{
 			currentAccel = (currentSpeedInfo.Speed - accelSample.Value.Speed) /
 				(currentSpeedInfo.Time - accelSample.Value.Time) * 1000;
+			float alpha = (float)accelDataBlendNumericUpDown.Value / 100;
+			currentAccel = currentAccel.Value * (1 - alpha) + prevAccel * alpha;
+			prevAccel = currentAccel.Value;
 			currentAccelLabel.Text = string.Format("{0:0.00} m/s²", currentAccel);
 		}
 
@@ -447,19 +451,22 @@ class IWannaUseBrakeWell: Form
 		long timeFromBrakeChange = currentTime - prevBrakeChangedTime;
 		long timeFromGameStart = currentTime - prevGameStartTime;
 		long timeFromPauseEnd = currentTime - prevPauseEndTime;
+		long timeFromLastAction =
+			Math.Min(timeFromPowerChange,
+			Math.Min(timeFromBrakeChange,
+			Math.Min(timeFromGameStart, timeFromPauseEnd)));
 		bool brakeAllowed =
 			trainState.Pnotch == 0 && // マスコンが「切」状態
-			trainState.Reverser > 0 && // レバーサが「前進」状態
-			timeFromPowerChange >= noConsecutiveOperationNumericUpDown.Value; // マスコン変更直後でない
+			trainState.Reverser > 0; // レバーサが「前進」状態
+		bool normallyRunning = brakeAllowed && currentGaming && !currentPaused;
 		bool brakeChangeAllowed =
-			brakeAllowed &&
-			timeFromBrakeChange >= noConsecutiveOperationNumericUpDown.Value && // ブレーキ変更直後でない
-			currentGaming && // ゲーム中である
-			!currentPaused && // ポーズ中でない
-			timeFromGameStart >= noConsecutiveOperationNumericUpDown.Value && // ゲーム開始直後でない
-			timeFromPauseEnd >= noConsecutiveOperationNumericUpDown.Value; // ポーズ解除直後でない
+			normallyRunning && // 通常の走行中 (前進、マスコン切、ゲーム中、ポーズ解除)
+			timeFromLastAction >= noConsecutiveOperationNumericUpDown.Value; // 操作直後でない
+		bool brakeRecordAllowed =
+			normallyRunning && // 通常の走行中 (前進、マスコン切、ゲーム中、ポーズ解除)
+			timeFromLastAction >= accelRecordLimitNumericUpDown.Value; // 操作直後でない
 		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9 &&
-			brakeChangeAllowed && currentSpeed >= 1)
+			brakeRecordAllowed && currentSpeed >= 1)
 		{
 			// ブレーキの効果の安定が期待できる状態で、かつ1m/s以上で走っている場合のみ、加速度を更新する
 			accelByBrakes[currentBrake] = currentAccel;
@@ -505,7 +512,8 @@ class IWannaUseBrakeWell: Form
 		}
 
 		// 自動ブレーキの判定を行う
-		if (useAutoBrakeCheckBox.Checked && brakeAllowed)
+		if (useAutoBrakeCheckBox.Checked && brakeAllowed &&
+			(!brakeOnlyWithManualCheckBox.Checked || currentBrakeInput > 0 || trainState.Pnotch < 0))
 		{
 			if (brakeChangeAllowed)
 			{
@@ -525,12 +533,12 @@ class IWannaUseBrakeWell: Form
 					if (nextToStop.HasValue && nextToBelowLimit.HasValue)
 					{
 						if ((speedLimitDistance >= nextToBelowLimit.Value ||
-							speedLimitDistance - 1 > toBelowLimit) &&
+							speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit) &&
 							(!distance.HasValue || distance.Value >= nextToStop.Value ||
-							distance.Value - 1 > toStop))
+							distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop))
 						{
 							// ブレーキを弱めても条件を満たせそうなら、弱める
-							// または、今のままだと1mより手前で停車または制限充足しそうなら、弱める
+							// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
 							currentATOBrake = currentBrake - 1;
 						}
 					}
@@ -539,7 +547,7 @@ class IWannaUseBrakeWell: Form
 				{
 					// 今のままだと過走/制限速度超過しそう
 					// ブレーキを強くする (強くできる場合)
-					if (currentBrake < 8)
+					if (currentBrake < (allowUsingEBCheckBox.Checked ? 8 : 7))
 					{
 						float? nextToStop = null, nextToBelowLimit = null;
 						for (int i = currentBrake + 1; i < 9; i++)
@@ -551,11 +559,11 @@ class IWannaUseBrakeWell: Form
 								break;
 							}
 						}
-						// 停車の場合、ブレーキを強めても1m以内に止まれそうまたは不明な場合のみ、強める
-						// 速度制限の場合、ブレーキを強めても充足が残り1m以内になりそうまたは不明な場合のみ、強める
+						// 停車の場合、ブレーキを強めても基準内に止まれそうまたは不明な場合のみ、強める
+						// 速度制限の場合、ブレーキを強めても充足が基準内になりそうまたは不明な場合のみ、強める
 						if (!nextToStop.HasValue || !nextToBelowLimit.HasValue ||
-							speedLimitDistance - 1 <= nextToBelowLimit.Value ||
-							(distance.HasValue && distance.Value - 1 <= nextToStop.Value))
+							speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value <= nextToBelowLimit.Value ||
+							(distance.HasValue && distance.Value - (float)noStopTooEarlyNumericUpDown.Value <= nextToStop.Value))
 						{
 							currentATOBrake = currentBrake + 1;
 						}
