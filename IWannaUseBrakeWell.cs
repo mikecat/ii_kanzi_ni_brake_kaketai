@@ -226,7 +226,7 @@ class IWannaUseBrakeWell: Form
 		accelDataBlendNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
 		accelDataBlendNumericUpDown.Maximum = 100;
 		accelDataBlendNumericUpDown.Minimum = 0;
-		accelDataBlendNumericUpDown.Value = 10;
+		accelDataBlendNumericUpDown.Value = 0;
 		accelDataBlendNumericUpDown.Increment = 1;
 		accelDataBlendNumericUpDown.DecimalPlaces = 1;
 		accelDataBlendUnitLabel = CreateControl<Label>(configGroupBox, 26, 2.5f, 1, 1);
