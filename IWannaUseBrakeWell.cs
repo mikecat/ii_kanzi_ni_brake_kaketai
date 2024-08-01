@@ -216,7 +216,7 @@ class IWannaUseBrakeWell: Form
 		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, configX, 1, 3, 1);
 		speedLimitMarginNumericUpDown.Maximum = Decimal.MaxValue;
 		speedLimitMarginNumericUpDown.Minimum = 0;
-		speedLimitMarginNumericUpDown.Value = 3;
+		speedLimitMarginNumericUpDown.Value = 0.5M;
 		speedLimitMarginNumericUpDown.Increment = 1;
 		speedLimitMarginNumericUpDown.DecimalPlaces = 1;
 		configX += 3;
