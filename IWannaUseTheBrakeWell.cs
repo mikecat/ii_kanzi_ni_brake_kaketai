@@ -111,6 +111,20 @@ class IWannaUseBrakeWell: Form
 	private float?[] toStopByBrakes = new float?[9];
 	private float?[] toBelowLimitByBrakes = new float?[9];
 
+	private struct HiddenSpeedLimit
+	{
+		public readonly float SpeedLimit;
+		public readonly float DeltaToDistance; // distance + deltaToDistance = この制限までの残り距離
+
+		public HiddenSpeedLimit(float speedLimit, float deltaToDistance)
+		{
+			SpeedLimit = speedLimit;
+			DeltaToDistance = deltaToDistance;
+		}
+	}
+	private readonly List<HiddenSpeedLimit> hiddenSpeedLimits = new List<HiddenSpeedLimit>();
+	private float prevDistance = 0, prevSpeedLimit = 0, prevSpeedLimitDistance = 0;
+
 	private int prevATOBrake = -99, currentATOBrake = 0;
 
 	public IWannaUseBrakeWell()
@@ -532,11 +546,39 @@ class IWannaUseBrakeWell: Form
 		{
 			speedLimit = trainState.nextSpeedLimit;
 			speedLimitDistance = trainState.nextSpeedLimitDistance;
+			// 手前の制限速度予告が奥の制限速度予告で隠れたケースを検出する
+			if (prevSpeedLimit >= 0 && speedLimit >= 0 &&
+				prevSpeedLimit >= speedLimit && prevSpeedLimitDistance < speedLimitDistance)
+			{
+				hiddenSpeedLimits.Add(new HiddenSpeedLimit(prevSpeedLimit, prevSpeedLimitDistance - prevDistance));
+			}
+			// 隠れた制限速度予告が適用されるかを判定する
+			for (int i = 0; i < hiddenSpeedLimits.Count; i++)
+			{
+				float hiddenSpeedLimitDistance = trainState.nextUIDistance + hiddenSpeedLimits[i].DeltaToDistance;
+				if (trainState.nextSpeedLimit > hiddenSpeedLimits[i].SpeedLimit || hiddenSpeedLimitDistance < 0)
+				{
+					// ゲーム側の制限速度がこの情報より速い (すなわち、制限がかかっていない) または、通過済
+					hiddenSpeedLimits.RemoveAt(i);
+					i--;
+				}
+				else
+				{
+					// 一番手前の制限速度を適用する
+					if (hiddenSpeedLimitDistance < speedLimitDistance)
+					{
+						speedLimit = hiddenSpeedLimits[i].SpeedLimit;
+						speedLimitDistance = hiddenSpeedLimitDistance;
+					}
+				}
+			}
 		}
 		else
 		{
 			speedLimit = trainState.speedLimit;
 			speedLimitDistance = 0;
+			// 制限速度予告が出ていないので、隠れた制限速度予告も無いはず
+			hiddenSpeedLimits.Clear();
 		}
 		speedLimit -= (float)speedLimitMarginNumericUpDown.Value;
 		if (speedLimit <= 0) speedLimit = 0;
@@ -563,6 +605,9 @@ class IWannaUseBrakeWell: Form
 		{
 			currentBelowLimitPredictLabel.Text = "∞ m";
 		}
+		prevDistance = trainState.nextUIDistance;
+		prevSpeedLimit = trainState.nextSpeedLimit;
+		prevSpeedLimitDistance = trainState.nextSpeedLimitDistance;
 
 		// ブレーキの状態と、ブレーキの状態ごとの加速度の情報を求める
 		int currentBrakeInput = trainState.Bnotch;
