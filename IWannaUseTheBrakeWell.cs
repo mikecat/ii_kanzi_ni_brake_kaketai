@@ -253,7 +253,7 @@ class IWannaUseBrakeWell: Form
 		accelSampleIntervalNumericUpDown.Minimum = 0;
 		accelSampleIntervalNumericUpDown.Value = 300;
 		accelSampleIntervalNumericUpDown.Increment = 10;
-		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 1, 1);
+		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 1.5f, 1);
 		accelSampleIntervalUnitLabel.Text = "ms";
 		accelSampleIntervalUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
@@ -288,7 +288,7 @@ class IWannaUseBrakeWell: Form
 		noStopTooEarlyNumericUpDown.Value = 1;
 		noStopTooEarlyNumericUpDown.Increment = 0.1M;
 		noStopTooEarlyNumericUpDown.DecimalPlaces = 2;
-		noStopTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 4, 1, 1);
+		noStopTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 4, 1.5f, 1);
 		noStopTooEarlyUnitLabel.Text = "m";
 		noStopTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
