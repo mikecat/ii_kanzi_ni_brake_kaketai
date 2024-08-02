@@ -1,4 +1,4 @@
-TARGET=IWannaUseBrakeWell.exe
+TARGET=IWannaUseTheBrakeWell.exe
 OPTIONS= \
 	/target:winexe \
 	/optimize+ \
@@ -7,7 +7,7 @@ OPTIONS= \
 	/reference:TrainCrewInput.dll
 
 SOURCES= \
-	IWannaUseBrakeWell.cs
+	IWannaUseTheBrakeWell.cs
 
 $(TARGET): $(SOURCES)
 	csc /out:$@ $(OPTIONS) $^
