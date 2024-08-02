@@ -41,6 +41,10 @@ class IWannaUseBrakeWell: Form
 	private MenuStrip mainMenuStrip;
 	private ToolStripMenuItem languageMenuItem;
 	private ToolStripMenuItem languageJapaneseMenuItem, languageEnglishMenuItem;
+	private ToolStripMenuItem carModelMenuItem;
+	private ToolStripMenuItem carModelAutoMenuItem;
+	private ToolStripSeparator carModelSeparator;
+	private ToolStripMenuItem carModel4000MenuItem, carModel3020MenuItem, carModelOtherMenuItem;
 
 	private GroupBox brakeInfoGroupBox;
 	private Label brakeInfoAccelTitleLabel, brakeInfoStopDistTitleLabel, brakeInfoLimitDistTitleLabel;
@@ -88,6 +92,7 @@ class IWannaUseBrakeWell: Form
 	private bool prevGaming = false, prevPaused = false;
 	private long prevGameStartTime = 0, prevPauseEndTime = 0;
 	private float prevAccel = 0;
+	private string prevCarModel = null;
 
 	private struct SpeedInfo
 	{
@@ -126,7 +131,21 @@ class IWannaUseBrakeWell: Form
 		languageEnglishMenuItem.Text = "English (&E)";
 		languageMenuItem.DropDownItems.Add(languageJapaneseMenuItem);
 		languageMenuItem.DropDownItems.Add(languageEnglishMenuItem);
+		carModelMenuItem = new ToolStripMenuItem();
+		carModelAutoMenuItem = new ToolStripMenuItem();
+		carModelSeparator = new ToolStripSeparator();
+		carModel4000MenuItem = new ToolStripMenuItem();
+		carModel4000MenuItem.Text = "4000 / 4000R (&4)";
+		carModel3020MenuItem = new ToolStripMenuItem();
+		carModel3020MenuItem.Text = "3020 (&3)";
+		carModelOtherMenuItem = new ToolStripMenuItem();
+		carModelMenuItem.DropDownItems.Add(carModelAutoMenuItem);
+		carModelMenuItem.DropDownItems.Add(carModelSeparator);
+		carModelMenuItem.DropDownItems.Add(carModel4000MenuItem);
+		carModelMenuItem.DropDownItems.Add(carModel3020MenuItem);
+		carModelMenuItem.DropDownItems.Add(carModelOtherMenuItem);
 		mainMenuStrip.Items.Add(languageMenuItem);
+		mainMenuStrip.Items.Add(carModelMenuItem);
 		this.Controls.Add(mainMenuStrip);
 		this.MainMenuStrip = mainMenuStrip;
 
@@ -289,6 +308,12 @@ class IWannaUseBrakeWell: Form
 		languageJapaneseMenuItem.Click += LanguageMenuClickHandler;
 		languageEnglishMenuItem.Click += LanguageMenuClickHandler;
 		languageJapaneseMenuItem.Checked = true;
+		carModelAutoMenuItem.Click += CarModelAutoClickHandler;
+		carModel4000MenuItem.Click += CarModelSelectorClickHandler;
+		carModel3020MenuItem.Click += CarModelSelectorClickHandler;
+		carModelOtherMenuItem.Click += CarModelSelectorClickHandler;
+		carModelAutoMenuItem.Checked = true;
+		CarModelSelectorClickHandler(carModelOtherMenuItem, null);
 		SetControlTexts();
 	}
 
@@ -297,10 +322,17 @@ class IWannaUseBrakeWell: Form
 		if (languageEnglishMenuItem.Checked)
 		{
 			this.Text = "I wanna use the brake well";
+			carModelMenuItem.Text = "Car model (&C)";
+			carModelAutoMenuItem.Text = "Auto (&A)";
+			carModelOtherMenuItem.Text = "Other (&O)";
 			brakeInfoGroupBox.Text = "Braking Information";
 			brakeInfoAccelTitleLabel.Text = "Acceleration";
 			brakeInfoStopDistTitleLabel.Text = "To stop";
 			brakeInfoLimitDistTitleLabel.Text = "To speed limit";
+			if (carModelOtherMenuItem.Checked)
+			{
+				brakeInfoNameLabels[1].Text = "Holding";
+			}
 			trainInfoGroupBox.Text = "Train information";
 			currentSpeedTitleLabel.Text = "Current speed";
 			currentAccelTitleLabel.Text = "Current acceleration";
@@ -323,10 +355,17 @@ class IWannaUseBrakeWell: Form
 		else
 		{
 			this.Text = "いい感じにブレーキをかけたい";
+			carModelMenuItem.Text = "車種 (&C)";
+			carModelAutoMenuItem.Text = "自動 (&A)";
+			carModelOtherMenuItem.Text = "その他 (&O)";
 			brakeInfoGroupBox.Text = "ブレーキ情報";
 			brakeInfoAccelTitleLabel.Text = "加速度";
 			brakeInfoStopDistTitleLabel.Text = "停車まで";
 			brakeInfoLimitDistTitleLabel.Text = "速度制限まで";
+			if (carModelOtherMenuItem.Checked)
+			{
+				brakeInfoNameLabels[1].Text = "抑速";
+			}
 			trainInfoGroupBox.Text = "列車情報";
 			currentSpeedTitleLabel.Text = "現在の速度";
 			currentAccelTitleLabel.Text = "現在の加速度";
@@ -356,6 +395,43 @@ class IWannaUseBrakeWell: Form
 		SetControlTexts();
 	}
 
+	private void CarModelAutoClickHandler(object sender, EventArgs e)
+	{
+		carModelAutoMenuItem.Checked = !carModelAutoMenuItem.Checked;
+	}
+
+	private void CarModelSelectorClickHandler(object sender, EventArgs e)
+	{
+		carModel4000MenuItem.Checked = false;
+		carModel3020MenuItem.Checked = false;
+		carModelOtherMenuItem.Checked = false;
+		((ToolStripMenuItem)sender).Checked = true;
+		if (sender == carModel4000MenuItem)
+		{
+			for (int i = 1; i <= 7; i++)
+			{
+				brakeInfoNameLabels[i].Text = string.Format("B{0}", i);
+			}
+			brakeInfoNameLabels[8].Text = "EB";
+		}
+		else if (sender == carModel3020MenuItem)
+		{
+			for (int i = 1; i <= 8; i++)
+			{
+				brakeInfoNameLabels[i].Text = string.Format("{0}kPa", i * 50);
+			}
+		}
+		else
+		{
+			brakeInfoNameLabels[1].Text = languageEnglishMenuItem.Checked ? "Holding" : "抑速";
+			for (int i = 1; i <= 6; i++)
+			{
+				brakeInfoNameLabels[i + 1].Text = string.Format("B{0}", i);
+			}
+			brakeInfoNameLabels[8].Text = "EB";
+		}
+	}
+
 	private void ShownHandler(object sender, EventArgs e)
 	{
 		TrainCrewInput.Init();
@@ -382,6 +458,18 @@ class IWannaUseBrakeWell: Form
 		long currentTime = stopwatch.ElapsedMilliseconds;
 		TrainState trainState = TrainCrewInput.GetTrainState();
 		GameState gameState = TrainCrewInput.gameState;
+
+		// 車種の変化時、自動設定が有効なら設定に反映する
+		string carModel = trainState.CarStates.Count > 0 ? trainState.CarStates[0].CarModel : null;
+		if (carModelAutoMenuItem.Checked && carModel != null && !carModel.Equals(prevCarModel))
+		{
+			object newItemToCheck =
+				"4000".Equals(carModel) || "4000R".Equals(carModel) ? carModel4000MenuItem :
+				"3020".Equals(carModel) ? carModel3020MenuItem :
+				carModelOtherMenuItem;
+			CarModelSelectorClickHandler(newItemToCheck, null);
+		}
+		prevCarModel = carModel;
 
 		// 現在の速度と加速度の情報を取得・表示する
 		float currentSpeed = trainState.Speed / 3.6f;
@@ -612,7 +700,7 @@ class IWannaUseBrakeWell: Form
 				{
 					// 今のままだと過走/制限速度超過しそう
 					// ブレーキを強くする (強くできる場合)
-					if (currentBrake < (allowUsingEBCheckBox.Checked ? 8 : 7))
+					if (currentBrake < (allowUsingEBCheckBox.Checked || carModel3020MenuItem.Checked ? 8 : 7))
 					{
 						float? nextToStop = null, nextToBelowLimit = null;
 						for (int i = currentBrake + 1; i < 9; i++)
