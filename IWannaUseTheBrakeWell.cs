@@ -36,6 +36,12 @@ class IWannaUseBrakeWell: Form
 		return control;
 	}
 
+	private Panel mainPanel;
+
+	private MenuStrip mainMenuStrip;
+	private ToolStripMenuItem languageMenuItem;
+	private ToolStripMenuItem languageJapaneseMenuItem, languageEnglishMenuItem;
+
 	private GroupBox brakeInfoGroupBox;
 	private Label brakeInfoAccelTitleLabel, brakeInfoStopDistTitleLabel, brakeInfoLimitDistTitleLabel;
 	private Panel[] brakeInfoPanels = new Panel[9];
@@ -104,25 +110,36 @@ class IWannaUseBrakeWell: Form
 
 	public IWannaUseBrakeWell()
 	{
-		this.Text = "いい感じにブレーキをかけたい";
 		this.Font = new Font("MS UI Gothic", fontSize, GraphicsUnit.Pixel);
 		this.FormBorderStyle = FormBorderStyle.FixedSingle;
 		this.MaximizeBox = false;
-		this.ClientSize = GetSizeOnGrid(40.5f, 18.5f);
 		Font doubleFont = new Font("MS UI Gothic", fontSize * 2, GraphicsUnit.Pixel);
 
 		SuspendLayout();
 
-		brakeInfoGroupBox = CreateControl<GroupBox>(this, 0.5f, 0.5f, 20, 11.5f);
-		brakeInfoGroupBox.Text = "ブレーキ情報";
+		mainMenuStrip = new MenuStrip();
+		languageMenuItem = new ToolStripMenuItem();
+		languageMenuItem.Text = "言語 / Language (&L)";
+		languageJapaneseMenuItem = new ToolStripMenuItem();
+		languageJapaneseMenuItem.Text = "日本語 (&J)";
+		languageEnglishMenuItem = new ToolStripMenuItem();
+		languageEnglishMenuItem.Text = "English (&E)";
+		languageMenuItem.DropDownItems.Add(languageJapaneseMenuItem);
+		languageMenuItem.DropDownItems.Add(languageEnglishMenuItem);
+		mainMenuStrip.Items.Add(languageMenuItem);
+		this.Controls.Add(mainMenuStrip);
+		this.MainMenuStrip = mainMenuStrip;
+
+		mainPanel = CreateControl<Panel>(this, 0, 0, 40.5f, 18.5f);
+		mainPanel.Top = mainMenuStrip.Height;
+		this.ClientSize = new Size(mainPanel.Width, mainMenuStrip.Height + mainPanel.Height);
+
+		brakeInfoGroupBox = CreateControl<GroupBox>(mainPanel, 0.5f, 0.5f, 20, 11.5f);
 		brakeInfoAccelTitleLabel = CreateControl<Label>(brakeInfoGroupBox, 3.5f, 1, 5, 1);
-		brakeInfoAccelTitleLabel.Text = "加速度";
 		brakeInfoAccelTitleLabel.TextAlign = ContentAlignment.TopRight;
 		brakeInfoStopDistTitleLabel = CreateControl<Label>(brakeInfoGroupBox, 8.5f, 1, 5, 1);
-		brakeInfoStopDistTitleLabel.Text = "停車まで";
 		brakeInfoStopDistTitleLabel.TextAlign = ContentAlignment.TopRight;
 		brakeInfoLimitDistTitleLabel = CreateControl<Label>(brakeInfoGroupBox, 14.5f, 1, 5, 1);
-		brakeInfoLimitDistTitleLabel.Text = "速度制限まで";
 		brakeInfoLimitDistTitleLabel.TextAlign = ContentAlignment.TopRight;
 		for (int i = 0; i < 9; i++) {
 			brakeInfoPanels[i] = CreateControl<Panel>(brakeInfoGroupBox, 0.5f, 10 - i, 19, 1);
@@ -140,88 +157,74 @@ class IWannaUseBrakeWell: Form
 			brakeInfoLimitDistLabel[i].TextAlign = ContentAlignment.MiddleRight;
 		}
 
-		trainInfoGroupBox = CreateControl<GroupBox>(this, 21, 0.5f, 19, 11.5f);
-		trainInfoGroupBox.Text = "列車情報";
+		trainInfoGroupBox = CreateControl<GroupBox>(mainPanel, 21, 0.5f, 19, 11.5f);
 		float col1x = 0.5f, col1w = 9, col2x = 9.5f, col2w = 9;
 		float row1y = 1, row2y = 4.5f, row3y = 8;
 
 		currentSpeedTitleLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row1y, col1w, 1);
-		currentSpeedTitleLabel.Text = "現在の速度";
 		currentSpeedLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row1y + 1, col1w, 2);
 		currentSpeedLabel.Text = "###.## m/s";
 		currentSpeedLabel.Font = doubleFont;
 		currentSpeedLabel.TextAlign = ContentAlignment.TopRight;
 
 		currentAccelTitleLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row1y, col2w, 1);
-		currentAccelTitleLabel.Text = "現在の加速度";
 		currentAccelLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row1y + 1, col2w, 2);
 		currentAccelLabel.Text = "###.## m/s²";
 		currentAccelLabel.Font = doubleFont;
 		currentAccelLabel.TextAlign = ContentAlignment.TopRight;
 
 		currentDistanceTitleLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row2y, col1w, 1);
-		currentDistanceTitleLabel.Text = "停車位置まで";
 		currentDistanceLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row2y + 1, col1w, 2);
 		currentDistanceLabel.Text = "#####.## m";
 		currentDistanceLabel.Font = doubleFont;
 		currentDistanceLabel.TextAlign = ContentAlignment.TopRight;
 
 		currentStopPredictTitleLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row2y, col2w, 1);
-		currentStopPredictTitleLabel.Text = "停車まで (予測)";
 		currentStopPredictLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row2y + 1, col2w, 2);
 		currentStopPredictLabel.Text = "#####.## m";
 		currentStopPredictLabel.Font = doubleFont;
 		currentStopPredictLabel.TextAlign = ContentAlignment.TopRight;
 
 		currentLimitDistanceTitleLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row3y, col1w, 1);
-		currentLimitDistanceTitleLabel.Text = "速度制限位置まで";
 		currentLimitDistanceLabel = CreateControl<Label>(trainInfoGroupBox, col1x, row3y + 1, col1w, 2);
 		currentLimitDistanceLabel.Text = "#####.## m";
 		currentLimitDistanceLabel.Font = doubleFont;
 		currentLimitDistanceLabel.TextAlign = ContentAlignment.TopRight;
 
 		currentBelowLimitPredictTitleLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row3y, col2w, 1);
-		currentBelowLimitPredictTitleLabel.Text = "速度制限充足まで (予測)";
 		currentBelowLimitPredictLabel = CreateControl<Label>(trainInfoGroupBox, col2x, row3y + 1, col2w, 2);
 		currentBelowLimitPredictLabel.Text = "#####.## m";
 		currentBelowLimitPredictLabel.Font = doubleFont;
 		currentBelowLimitPredictLabel.TextAlign = ContentAlignment.TopRight;
 
-		configGroupBox = CreateControl<GroupBox>(this, 0.5f, 12.5f, 39.5f, 5.5f);
-		configGroupBox.Text = "設定";
+		configGroupBox = CreateControl<GroupBox>(mainPanel, 0.5f, 12.5f, 39.5f, 5.5f);
 
 		useAutoBrakeCheckBox = CreateControl<CheckBox>(configGroupBox, 0.5f, 1, 9, 1);
-		useAutoBrakeCheckBox.Text = "自動ブレーキを使用";
 		brakeOnlyWithManualCheckBox = CreateControl<CheckBox>(configGroupBox, 9.5f, 1, 9, 1);
-		brakeOnlyWithManualCheckBox.Text = "手動ブレーキ時のみ";
 		allowUsingEBCheckBox = CreateControl<CheckBox>(configGroupBox, 18.5f, 1, 8, 1);
-		allowUsingEBCheckBox.Text = "EBの使用を許可";
 
-		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, 27, 1, 6, 1);
-		noConsecutiveOperationTitleLabel.Text = "連続操作制限";
+		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, 27, 1, 7, 1);
 		noConsecutiveOperationTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		noConsecutiveOperationNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 1, 3, 1);
+		noConsecutiveOperationNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 1, 3, 1);
 		noConsecutiveOperationNumericUpDown.Maximum = Decimal.MaxValue;
 		noConsecutiveOperationNumericUpDown.Minimum = 0;
 		noConsecutiveOperationNumericUpDown.Value = 500;
 		noConsecutiveOperationNumericUpDown.Increment = 10;
-		noConsecutiveOperationUnitLabel = CreateControl<Label>(configGroupBox, 36, 1, 2, 1);
+		noConsecutiveOperationUnitLabel = CreateControl<Label>(configGroupBox, 37, 1, 2, 1);
 		noConsecutiveOperationUnitLabel.Text = "ms";
 
 		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 2.5f, 8, 1);
-		accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
 		accelSampleIntervalTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 2.5f, 4, 1);
 		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
 		accelSampleIntervalNumericUpDown.Minimum = 0;
 		accelSampleIntervalNumericUpDown.Value = 300;
 		accelSampleIntervalNumericUpDown.Increment = 10;
-		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 2, 1);
+		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 1, 1);
 		accelSampleIntervalUnitLabel.Text = "ms";
 		accelSampleIntervalUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		accelDataBlendTitleLabel = CreateControl<Label>(configGroupBox, 15, 2.5f, 7, 1);
-		accelDataBlendTitleLabel.Text = "加速度データブレンド";
+		accelDataBlendTitleLabel = CreateControl<Label>(configGroupBox, 14, 2.5f, 8, 1);
 		accelDataBlendTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		accelDataBlendNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
 		accelDataBlendNumericUpDown.Maximum = 100;
@@ -233,20 +236,18 @@ class IWannaUseBrakeWell: Form
 		accelDataBlendUnitLabel.Text = "%";
 		accelDataBlendUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		accelRecordLimitTitleLabel = CreateControl<Label>(configGroupBox, 27, 2.5f, 6, 1);
-		accelRecordLimitTitleLabel.Text = "加速度記録制限";
+		accelRecordLimitTitleLabel = CreateControl<Label>(configGroupBox, 27, 2.5f, 7, 1);
 		accelRecordLimitTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		accelRecordLimitNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 2.5f, 3, 1);
+		accelRecordLimitNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 2.5f, 3, 1);
 		accelRecordLimitNumericUpDown.Maximum = Decimal.MaxValue;
 		accelRecordLimitNumericUpDown.Minimum = 0;
 		accelRecordLimitNumericUpDown.Value = 500;
 		accelRecordLimitNumericUpDown.Increment = 10;
-		accelRecordLimitUnitLabel = CreateControl<Label>(configGroupBox, 36, 2.5f, 2, 1);
+		accelRecordLimitUnitLabel = CreateControl<Label>(configGroupBox, 37, 2.5f, 2, 1);
 		accelRecordLimitUnitLabel.Text = "ms";
 		accelRecordLimitUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
 		noStopTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 4, 8, 1);
-		noStopTooEarlyTitleLabel.Text = "停車制限";
 		noStopTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		noStopTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 4, 4, 1);
 		noStopTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
@@ -258,8 +259,7 @@ class IWannaUseBrakeWell: Form
 		noStopTooEarlyUnitLabel.Text = "m";
 		noStopTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 15, 4, 7, 1);
-		noBelowLimitTooEarlyTitleLabel.Text = "速度制限充足制限";
+		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 14, 4, 8, 1);
 		noBelowLimitTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		noBelowLimitTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 4, 4, 1);
 		noBelowLimitTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
@@ -271,22 +271,89 @@ class IWannaUseBrakeWell: Form
 		noBelowLimitTooEarlyUnitLabel.Text = "m";
 		noBelowLimitTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, 27, 4, 6, 1);
-		speedLimitMarginTitleLabel.Text = "速度制限余裕";
+		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, 27, 4, 7, 1);
 		speedLimitMarginTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 33, 4, 3, 1);
+		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 4, 3, 1);
 		speedLimitMarginNumericUpDown.Maximum = Decimal.MaxValue;
 		speedLimitMarginNumericUpDown.Minimum = 0;
 		speedLimitMarginNumericUpDown.Value = 0.5M;
 		speedLimitMarginNumericUpDown.Increment = 0.1M;
 		speedLimitMarginNumericUpDown.DecimalPlaces = 1;
-		speedLimitMarginUnitLabel = CreateControl<Label>(configGroupBox, 36, 4, 2, 1);
+		speedLimitMarginUnitLabel = CreateControl<Label>(configGroupBox, 37, 4, 2, 1);
 		speedLimitMarginUnitLabel.Text = "km/h";
 		speedLimitMarginUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
 		ResumeLayout();
 
 		Shown += ShownHandler;
+		languageJapaneseMenuItem.Click += LanguageMenuClickHandler;
+		languageEnglishMenuItem.Click += LanguageMenuClickHandler;
+		languageJapaneseMenuItem.Checked = true;
+		SetControlTexts();
+	}
+
+	private void SetControlTexts()
+	{
+		if (languageEnglishMenuItem.Checked)
+		{
+			this.Text = "I wanna use the brake well";
+			brakeInfoGroupBox.Text = "Braking Information";
+			brakeInfoAccelTitleLabel.Text = "Acceleration";
+			brakeInfoStopDistTitleLabel.Text = "To stop";
+			brakeInfoLimitDistTitleLabel.Text = "To speed limit";
+			trainInfoGroupBox.Text = "Train information";
+			currentSpeedTitleLabel.Text = "Current speed";
+			currentAccelTitleLabel.Text = "Current acceleration";
+			currentDistanceTitleLabel.Text = "Distance to stopping point";
+			currentStopPredictTitleLabel.Text = "Estimated distance to stop";
+			currentLimitDistanceTitleLabel.Text = "Distance before speed limit";
+			currentBelowLimitPredictTitleLabel.Text = "Estimated dist. to meet limit";
+			configGroupBox.Text = "Configuration";
+			useAutoBrakeCheckBox.Text = "Use automatic braking";
+			brakeOnlyWithManualCheckBox.Text = "Only with manual braking";
+			allowUsingEBCheckBox.Text = "Allow to use EB";
+			noConsecutiveOperationTitleLabel.Text = "Control repeat limit";
+			accelSampleIntervalTitleLabel.Text = "Measuring time for accel.";
+			accelDataBlendTitleLabel.Text = "Accel. data blending";
+			accelRecordLimitTitleLabel.Text = "Accel. recording limit";
+			noStopTooEarlyTitleLabel.Text = "Early stop limit";
+			noBelowLimitTooEarlyTitleLabel.Text = "Early limit meeting limit";
+			speedLimitMarginTitleLabel.Text = "Speed limit margin";
+		}
+		else
+		{
+			this.Text = "いい感じにブレーキをかけたい";
+			brakeInfoGroupBox.Text = "ブレーキ情報";
+			brakeInfoAccelTitleLabel.Text = "加速度";
+			brakeInfoStopDistTitleLabel.Text = "停車まで";
+			brakeInfoLimitDistTitleLabel.Text = "速度制限まで";
+			trainInfoGroupBox.Text = "列車情報";
+			currentSpeedTitleLabel.Text = "現在の速度";
+			currentAccelTitleLabel.Text = "現在の加速度";
+			currentDistanceTitleLabel.Text = "停車位置まで";
+			currentStopPredictTitleLabel.Text = "停車まで (予測)";
+			currentLimitDistanceTitleLabel.Text = "速度制限位置まで";
+			currentBelowLimitPredictTitleLabel.Text = "速度制限充足まで (予測)";
+			configGroupBox.Text = "設定";
+			useAutoBrakeCheckBox.Text = "自動ブレーキを使用";
+			brakeOnlyWithManualCheckBox.Text = "手動ブレーキ時のみ";
+			allowUsingEBCheckBox.Text = "EBの使用を許可";
+			noConsecutiveOperationTitleLabel.Text = "連続操作制限";
+			accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
+			accelDataBlendTitleLabel.Text = "加速度データブレンド";
+			accelRecordLimitTitleLabel.Text = "加速度記録制限";
+			noStopTooEarlyTitleLabel.Text = "停車制限";
+			noBelowLimitTooEarlyTitleLabel.Text = "速度制限充足制限";
+			speedLimitMarginTitleLabel.Text = "速度制限余裕";
+		}
+	}
+
+	private void LanguageMenuClickHandler(object sender, EventArgs e)
+	{
+		languageJapaneseMenuItem.Checked = false;
+		languageEnglishMenuItem.Checked = false;
+		((ToolStripMenuItem)sender).Checked = true;
+		SetControlTexts();
 	}
 
 	private void ShownHandler(object sender, EventArgs e)
