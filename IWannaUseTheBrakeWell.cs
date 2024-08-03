@@ -7,6 +7,8 @@ using TrainCrew;
 
 class IWannaUseBrakeWell: Form
 {
+	private static readonly string VERSION = "1.0.0";
+
 	public static void Main()
 	{
 		Application.EnableVisualStyles();
@@ -336,7 +338,7 @@ class IWannaUseBrakeWell: Form
 	{
 		if (languageEnglishMenuItem.Checked)
 		{
-			this.Text = "I wanna use the brake well";
+			this.Text = "I wanna use the brake well " + VERSION;
 			carModelMenuItem.Text = "Car model (&C)";
 			carModelAutoMenuItem.Text = "Auto (&A)";
 			carModelOtherMenuItem.Text = "Other (&O)";
@@ -369,7 +371,7 @@ class IWannaUseBrakeWell: Form
 		}
 		else
 		{
-			this.Text = "いい感じにブレーキをかけたい";
+			this.Text = "いい感じにブレーキをかけたい " + VERSION;
 			carModelMenuItem.Text = "車種 (&C)";
 			carModelAutoMenuItem.Text = "自動 (&A)";
 			carModelOtherMenuItem.Text = "その他 (&O)";

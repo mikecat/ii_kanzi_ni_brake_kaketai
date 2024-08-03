@@ -8,6 +8,7 @@ OPTIONS= \
 	/reference:TrainCrewInput.dll
 
 SOURCES= \
+	AssemblyInfo.cs \
 	IWannaUseTheBrakeWell.cs
 
 $(TARGET): $(SOURCES)
