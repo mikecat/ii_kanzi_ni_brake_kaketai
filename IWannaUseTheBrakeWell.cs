@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +16,106 @@ class IWannaUseTheBrakeWell: Form
 		Application.SetCompatibleTextRenderingDefault(false);
 		Application.Run(new IWannaUseTheBrakeWell());
 	}
+
+	private static RegistryKey RegistryOpenCurrentUserSubKey(string name, bool writable)
+	{
+		try
+		{
+			return Registry.CurrentUser.OpenSubKey(name, writable);
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	private static RegistryKey RegistryCreateCurrentUserSubKey(string name)
+	{
+		try
+		{
+			return Registry.CurrentUser.CreateSubKey(name);
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	private static string RegistryGetStringValue(RegistryKey key, string name)
+	{
+		try
+		{
+			object data = key.GetValue(name);
+			if (data is string)
+			{
+				return (string)data;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	private static int? RegistryGetIntValue(RegistryKey key, string name)
+	{
+		try
+		{
+			object data = key.GetValue(name);
+			if (data is int && (int)data >= 0)
+			{
+				return (int)data;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	private static void RegistrySetValue(RegistryKey key, string name, object value)
+	{
+		try
+		{
+			key.SetValue(name, value);
+		}
+		catch (Exception)
+		{
+			// 握りつぶす
+		}
+	}
+
+	private static readonly string RegistrySubKeyPath = "Software\\MikeCAT\\IWannaUseTheBrakeWell";
+
+	private static readonly string LanguageValueName = "Language";
+	private static readonly string LanguageJapaneseData = "Japanese";
+	private static readonly string LanguageEnglishData = "English";
+	private static readonly string CarModelAutoValueName = "CarModelAuto";
+	private static readonly string CarModelValueName = "CarModel";
+	private static readonly string CarModel4000Data = "4000";
+	private static readonly string CarModel3020Data = "3020";
+	private static readonly string CarModelOtherData = "Other";
+
+	private static readonly string UseAutoBrakeValueName = "UseAutoBrake";
+	private static readonly string AutoBrakeOnlyWhenManuallyBrakingValueName = "OnlyWhenManuallyBraking";
+	private static readonly string AllowUsingEBValueName = "AllowUsingEB";
+	private static readonly string NoConsecutiveOperationValueName = "NoConsecutiveOperation";
+
+	private static readonly string NoStopTooEarlyValueName = "NoStopTooEarly";
+	private static readonly string AccelSampleIntervalValueName = "AccelerationSampleInterval";
+	private static readonly string AccelRecordLimitValueName = "AccelerationRecordLimit";
+
+	private static readonly string NoBelowLimitTooEarlyValueName = "NoBelowLimitTooEarly";
+	private static readonly string SpeedLimitOffsetValueName = "SpeedLimitPositionOffset";
+	private static readonly string SpeedLimitMarginValueName = "SpeedLimitMargin";
 
 	private const int fontSize = 16, gridSize = 22;
 
@@ -241,7 +342,7 @@ class IWannaUseTheBrakeWell: Form
 		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, 27, 1, 7, 1);
 		noConsecutiveOperationTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		noConsecutiveOperationNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 1, 3, 1);
-		noConsecutiveOperationNumericUpDown.Maximum = Decimal.MaxValue;
+		noConsecutiveOperationNumericUpDown.Maximum = Int32.MaxValue;
 		noConsecutiveOperationNumericUpDown.Minimum = 0;
 		noConsecutiveOperationNumericUpDown.Value = 500;
 		noConsecutiveOperationNumericUpDown.Increment = 10;
@@ -251,7 +352,7 @@ class IWannaUseTheBrakeWell: Form
 		noStopTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 2.5f, 8, 1);
 		noStopTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		noStopTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 2.5f, 4, 1);
-		noStopTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
+		noStopTooEarlyNumericUpDown.Maximum = (decimal)Int32.MaxValue / 100;
 		noStopTooEarlyNumericUpDown.Minimum = 0;
 		noStopTooEarlyNumericUpDown.Value = 1;
 		noStopTooEarlyNumericUpDown.Increment = 0.1M;
@@ -263,7 +364,7 @@ class IWannaUseTheBrakeWell: Form
 		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, 14, 2.5f, 8, 1);
 		accelSampleIntervalTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
-		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
+		accelSampleIntervalNumericUpDown.Maximum = Int32.MaxValue;
 		accelSampleIntervalNumericUpDown.Minimum = 0;
 		accelSampleIntervalNumericUpDown.Value = 300;
 		accelSampleIntervalNumericUpDown.Increment = 10;
@@ -274,7 +375,7 @@ class IWannaUseTheBrakeWell: Form
 		accelRecordLimitTitleLabel = CreateControl<Label>(configGroupBox, 27, 2.5f, 7, 1);
 		accelRecordLimitTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		accelRecordLimitNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 2.5f, 3, 1);
-		accelRecordLimitNumericUpDown.Maximum = Decimal.MaxValue;
+		accelRecordLimitNumericUpDown.Maximum = Int32.MaxValue;
 		accelRecordLimitNumericUpDown.Minimum = 0;
 		accelRecordLimitNumericUpDown.Value = 500;
 		accelRecordLimitNumericUpDown.Increment = 10;
@@ -285,7 +386,7 @@ class IWannaUseTheBrakeWell: Form
 		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 4, 8, 1);
 		noBelowLimitTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		noBelowLimitTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 4, 4, 1);
-		noBelowLimitTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
+		noBelowLimitTooEarlyNumericUpDown.Maximum = (decimal)Int32.MaxValue / 100;
 		noBelowLimitTooEarlyNumericUpDown.Minimum = 0;
 		noBelowLimitTooEarlyNumericUpDown.Value = 1;
 		noBelowLimitTooEarlyNumericUpDown.Increment = 0.1M;
@@ -297,7 +398,7 @@ class IWannaUseTheBrakeWell: Form
 		speedLimitOffsetTitleLabel = CreateControl<Label>(configGroupBox, 14, 4, 8, 1);
 		speedLimitOffsetTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		speedLimitOffsetNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 4, 4, 1);
-		speedLimitOffsetNumericUpDown.Maximum = Decimal.MaxValue;
+		speedLimitOffsetNumericUpDown.Maximum = (decimal)Int32.MaxValue / 100;
 		speedLimitOffsetNumericUpDown.Minimum = 0;
 		speedLimitOffsetNumericUpDown.Value = 1;
 		speedLimitOffsetNumericUpDown.Increment = 0.1M;
@@ -309,7 +410,7 @@ class IWannaUseTheBrakeWell: Form
 		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, 27, 4, 7, 1);
 		speedLimitMarginTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		speedLimitMarginNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 4, 3, 1);
-		speedLimitMarginNumericUpDown.Maximum = Decimal.MaxValue;
+		speedLimitMarginNumericUpDown.Maximum = (decimal)Int32.MaxValue / 10;
 		speedLimitMarginNumericUpDown.Minimum = 0;
 		speedLimitMarginNumericUpDown.Value = 0.5M;
 		speedLimitMarginNumericUpDown.Increment = 0.1M;
@@ -321,15 +422,95 @@ class IWannaUseTheBrakeWell: Form
 		ResumeLayout();
 
 		Shown += ShownHandler;
+		FormClosed += FormClosedHandler;
 		languageJapaneseMenuItem.Click += LanguageMenuClickHandler;
 		languageEnglishMenuItem.Click += LanguageMenuClickHandler;
-		languageJapaneseMenuItem.Checked = true;
 		carModelAutoMenuItem.Click += CarModelAutoClickHandler;
 		carModel4000MenuItem.Click += CarModelSelectorClickHandler;
 		carModel3020MenuItem.Click += CarModelSelectorClickHandler;
 		carModelOtherMenuItem.Click += CarModelSelectorClickHandler;
-		carModelAutoMenuItem.Checked = true;
-		CarModelSelectorClickHandler(carModelOtherMenuItem, null);
+
+		RegistryKey key = RegistryOpenCurrentUserSubKey(RegistrySubKeyPath, false);
+		if (key != null)
+		{
+			string languageData = RegistryGetStringValue(key, LanguageValueName);
+			if (LanguageEnglishData.Equals(languageData))
+			{
+				languageEnglishMenuItem.Checked = true;
+			}
+			else
+			{
+				languageJapaneseMenuItem.Checked = true;
+			}
+			int? carModelAutoData = RegistryGetIntValue(key, CarModelAutoValueName);
+			carModelAutoMenuItem.Checked = carModelAutoData.HasValue && carModelAutoData.Value != 0;
+			string carModelData = RegistryGetStringValue(key, CarModelValueName);
+			if (CarModel4000Data.Equals(carModelData))
+			{
+				CarModelSelectorClickHandler(carModel4000MenuItem, null);
+			}
+			else if (CarModel3020Data.Equals(carModelData))
+			{
+				CarModelSelectorClickHandler(carModel3020MenuItem, null);
+			}
+			else
+			{
+				CarModelSelectorClickHandler(carModelOtherMenuItem, null);
+			}
+
+			int? useAutoBrakeData = RegistryGetIntValue(key, UseAutoBrakeValueName);
+			useAutoBrakeCheckBox.Checked = useAutoBrakeData.HasValue && useAutoBrakeData.Value != 0;
+			int? onlyWhenManuallyBrakingData = RegistryGetIntValue(key, AutoBrakeOnlyWhenManuallyBrakingValueName);
+			brakeOnlyWithManualCheckBox.Checked = onlyWhenManuallyBrakingData.HasValue && onlyWhenManuallyBrakingData.Value != 0;
+			int? allowUsingEBData = RegistryGetIntValue(key, AllowUsingEBValueName);
+			allowUsingEBCheckBox.Checked = allowUsingEBData.HasValue && allowUsingEBData.Value != 0;
+			int? noConsecutiveOperationData = RegistryGetIntValue(key, NoConsecutiveOperationValueName);
+			if (noConsecutiveOperationData.HasValue)
+			{
+				noConsecutiveOperationNumericUpDown.Value = noConsecutiveOperationData.Value;
+			}
+
+			int? noStopTooEarlyData = RegistryGetIntValue(key, NoStopTooEarlyValueName);
+			if (noStopTooEarlyData.HasValue)
+			{
+				noStopTooEarlyNumericUpDown.Value = (decimal)noStopTooEarlyData.Value / 100;
+			}
+			int? accelSampleIntervalData = RegistryGetIntValue(key, AccelSampleIntervalValueName);
+			if (accelSampleIntervalData.HasValue)
+			{
+				accelSampleIntervalNumericUpDown.Value = accelSampleIntervalData.Value;
+			}
+			int? accelRecordLimitData = RegistryGetIntValue(key, AccelRecordLimitValueName);
+			if (accelRecordLimitData.HasValue)
+			{
+				accelRecordLimitNumericUpDown.Value = accelRecordLimitData.Value;
+			}
+
+			int? noBelowLimitTooEarlyData = RegistryGetIntValue(key, NoBelowLimitTooEarlyValueName);
+			if (noBelowLimitTooEarlyData.HasValue)
+			{
+				noBelowLimitTooEarlyNumericUpDown.Value = (decimal)noBelowLimitTooEarlyData.Value / 100;
+			}
+			int? speedLimitOffsetData = RegistryGetIntValue(key, SpeedLimitOffsetValueName);
+			if (speedLimitOffsetData.HasValue)
+			{
+				speedLimitOffsetNumericUpDown.Value = (decimal)speedLimitOffsetData.Value / 100;
+			}
+			int? speedLimitMarginData = RegistryGetIntValue(key, SpeedLimitMarginValueName);
+			if (speedLimitMarginData.HasValue)
+			{
+				speedLimitMarginNumericUpDown.Value = (decimal)speedLimitMarginData.Value / 10;
+			}
+
+			key.Close();
+		}
+		else
+		{
+			languageJapaneseMenuItem.Checked = true;
+			carModelAutoMenuItem.Checked = true;
+			CarModelSelectorClickHandler(carModelOtherMenuItem, null);
+		}
+
 		SetControlTexts();
 	}
 
@@ -466,6 +647,38 @@ class IWannaUseTheBrakeWell: Form
 		trainCrewValid = false;
 		TrainCrewInput.SetATO_Notch(0);
 		TrainCrewInput.Dispose();
+
+		RegistryKey key = RegistryCreateCurrentUserSubKey(RegistrySubKeyPath);
+		if (key != null)
+		{
+			RegistrySetValue(key, LanguageValueName,
+				languageJapaneseMenuItem.Checked ? LanguageJapaneseData :
+				languageEnglishMenuItem.Checked ? LanguageEnglishData :
+				""
+			);
+			RegistrySetValue(key, CarModelAutoValueName, carModelAutoMenuItem.Checked ? 1 : 0);
+			RegistrySetValue(key, CarModelValueName,
+				carModel4000MenuItem.Checked ? CarModel4000Data :
+				carModel3020MenuItem.Checked ? CarModel3020Data :
+				carModelOtherMenuItem.Checked ? CarModelOtherData :
+				""
+			);
+
+			RegistrySetValue(key, UseAutoBrakeValueName, useAutoBrakeCheckBox.Checked ? 1 : 0);
+			RegistrySetValue(key, AutoBrakeOnlyWhenManuallyBrakingValueName, brakeOnlyWithManualCheckBox.Checked ? 1 : 0);
+			RegistrySetValue(key, AllowUsingEBValueName, allowUsingEBCheckBox.Checked ? 1 : 0);
+			RegistrySetValue(key, NoConsecutiveOperationValueName, (int)noConsecutiveOperationNumericUpDown.Value);
+
+			RegistrySetValue(key, NoStopTooEarlyValueName, (int)(noStopTooEarlyNumericUpDown.Value * 100));
+			RegistrySetValue(key, AccelSampleIntervalValueName, (int)accelSampleIntervalNumericUpDown.Value);
+			RegistrySetValue(key, AccelRecordLimitValueName, (int)accelRecordLimitNumericUpDown.Value);
+
+			RegistrySetValue(key, NoBelowLimitTooEarlyValueName, (int)(noBelowLimitTooEarlyNumericUpDown.Value * 100));
+			RegistrySetValue(key, SpeedLimitOffsetValueName, (int)(speedLimitOffsetNumericUpDown.Value * 100));
+			RegistrySetValue(key, SpeedLimitMarginValueName, (int)(speedLimitMarginNumericUpDown.Value * 10));
+
+			key.Close();
+		}
 	}
 
 	private void TickHandler(object sender, EventArgs e)
