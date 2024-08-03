@@ -74,8 +74,6 @@ class IWannaUseBrakeWell: Form
 
 	private Label accelSampleIntervalTitleLabel, accelSampleIntervalUnitLabel;
 	private NumericUpDown accelSampleIntervalNumericUpDown;
-	private Label accelDataBlendTitleLabel, accelDataBlendUnitLabel;
-	private NumericUpDown accelDataBlendNumericUpDown;
 	private Label accelRecordLimitTitleLabel, accelRecordLimitUnitLabel;
 	private NumericUpDown accelRecordLimitNumericUpDown;
 
@@ -93,7 +91,6 @@ class IWannaUseBrakeWell: Form
 	private long prevPowerChangedTime = 0, prevBrakeChangedTime = 0;
 	private bool prevGaming = false, prevPaused = false;
 	private long prevGameStartTime = 0, prevPauseEndTime = 0;
-	private float prevAccel = 0;
 	private string prevCarModel = null;
 
 	private struct SpeedInfo
@@ -260,18 +257,6 @@ class IWannaUseBrakeWell: Form
 		accelSampleIntervalUnitLabel.Text = "ms";
 		accelSampleIntervalUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		accelDataBlendTitleLabel = CreateControl<Label>(configGroupBox, 14, 2.5f, 8, 1);
-		accelDataBlendTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		accelDataBlendNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
-		accelDataBlendNumericUpDown.Maximum = 100;
-		accelDataBlendNumericUpDown.Minimum = 0;
-		accelDataBlendNumericUpDown.Value = 0;
-		accelDataBlendNumericUpDown.Increment = 1;
-		accelDataBlendNumericUpDown.DecimalPlaces = 1;
-		accelDataBlendUnitLabel = CreateControl<Label>(configGroupBox, 26, 2.5f, 1, 1);
-		accelDataBlendUnitLabel.Text = "%";
-		accelDataBlendUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
-
 		accelRecordLimitTitleLabel = CreateControl<Label>(configGroupBox, 27, 2.5f, 7, 1);
 		accelRecordLimitTitleLabel.TextAlign = ContentAlignment.MiddleRight;
 		accelRecordLimitNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 34, 2.5f, 3, 1);
@@ -363,7 +348,6 @@ class IWannaUseBrakeWell: Form
 			allowUsingEBCheckBox.Text = "Allow to use EB";
 			noConsecutiveOperationTitleLabel.Text = "Control repeat limit";
 			accelSampleIntervalTitleLabel.Text = "Measuring time for accel.";
-			accelDataBlendTitleLabel.Text = "Accel. data blending";
 			accelRecordLimitTitleLabel.Text = "Accel. recording limit";
 			noStopTooEarlyTitleLabel.Text = "Early stop limit";
 			noBelowLimitTooEarlyTitleLabel.Text = "Early limit meeting limit";
@@ -396,7 +380,6 @@ class IWannaUseBrakeWell: Form
 			allowUsingEBCheckBox.Text = "EBの使用を許可";
 			noConsecutiveOperationTitleLabel.Text = "連続操作制限";
 			accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
-			accelDataBlendTitleLabel.Text = "加速度データブレンド";
 			accelRecordLimitTitleLabel.Text = "加速度記録制限";
 			noStopTooEarlyTitleLabel.Text = "停車制限";
 			noBelowLimitTooEarlyTitleLabel.Text = "速度制限充足制限";
@@ -514,9 +497,6 @@ class IWannaUseBrakeWell: Form
 		{
 			currentAccel = (currentSpeedInfo.Speed - accelSample.Value.Speed) /
 				(currentSpeedInfo.Time - accelSample.Value.Time) * 1000;
-			float alpha = (float)accelDataBlendNumericUpDown.Value / 100;
-			currentAccel = currentAccel.Value * (1 - alpha) + prevAccel * alpha;
-			prevAccel = currentAccel.Value;
 			currentAccelLabel.Text = string.Format("{0:0.00} m/s²", currentAccel);
 		}
 
