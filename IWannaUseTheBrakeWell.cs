@@ -934,25 +934,28 @@ class IWannaUseTheBrakeWell: Form
 				if ((!distance.HasValue || distance.Value >= toStop) && speedLimitDistance >= toBelowLimit)
 				{
 					// 今のままで目標地点かそれより前に条件を満たせそう
-					float? nextToStop = null, nextToBelowLimit = null;
-					for (int i = currentBrake - 1; i >= 0; i--)
+					if (currentBrake > 0)
 					{
-						if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+						float? nextToStop = null, nextToBelowLimit = null;
+						for (int i = currentBrake - 1; i >= 0; i--)
 						{
-							nextToStop = toStopByBrakes[i];
-							nextToBelowLimit = toBelowLimitByBrakes[i];
-							break;
+							if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+							{
+								nextToStop = toStopByBrakes[i];
+								nextToBelowLimit = toBelowLimitByBrakes[i];
+								break;
+							}
 						}
-					}
-					if (((nextToBelowLimit.HasValue && speedLimitDistance >= nextToBelowLimit.Value) ||
-						speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit ||
-						(!nextToBelowLimit.HasValue && toBelowLimit == 0)) &&
-						(!distance.HasValue || (nextToStop.HasValue && distance.Value >= nextToStop.Value) ||
-						distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop))
-					{
-						// ブレーキを弱めても条件を満たせそうなら、弱める
-						// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
-						currentATOBrake = currentBrake - 1;
+						if (((nextToBelowLimit.HasValue && speedLimitDistance >= nextToBelowLimit.Value) ||
+							speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit ||
+							(!nextToBelowLimit.HasValue && toBelowLimit == 0)) &&
+							(!distance.HasValue || (nextToStop.HasValue && distance.Value >= nextToStop.Value) ||
+							distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop))
+						{
+							// ブレーキを弱めても条件を満たせそうなら、弱める
+							// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
+							currentATOBrake = currentBrake - 1;
+						}
 					}
 				}
 				else
