@@ -72,15 +72,17 @@ class IWannaUseBrakeWell: Form
 	private Label noConsecutiveOperationTitleLabel, noConsecutiveOperationUnitLabel;
 	private NumericUpDown noConsecutiveOperationNumericUpDown;
 
+	private Label noStopTooEarlyTitleLabel, noStopTooEarlyUnitLabel;
+	private NumericUpDown noStopTooEarlyNumericUpDown;
 	private Label accelSampleIntervalTitleLabel, accelSampleIntervalUnitLabel;
 	private NumericUpDown accelSampleIntervalNumericUpDown;
 	private Label accelRecordLimitTitleLabel, accelRecordLimitUnitLabel;
 	private NumericUpDown accelRecordLimitNumericUpDown;
 
-	private Label noStopTooEarlyTitleLabel, noStopTooEarlyUnitLabel;
-	private NumericUpDown noStopTooEarlyNumericUpDown;
 	private Label noBelowLimitTooEarlyTitleLabel, noBelowLimitTooEarlyUnitLabel;
 	private NumericUpDown noBelowLimitTooEarlyNumericUpDown;
+	private Label speedLimitOffsetTitleLabel, speedLimitOffsetUnitLabel;
+	private NumericUpDown speedLimitOffsetNumericUpDown;
 	private Label speedLimitMarginTitleLabel, speedLimitMarginUnitLabel;
 	private NumericUpDown speedLimitMarginNumericUpDown;
 
@@ -246,14 +248,26 @@ class IWannaUseBrakeWell: Form
 		noConsecutiveOperationUnitLabel = CreateControl<Label>(configGroupBox, 37, 1, 2, 1);
 		noConsecutiveOperationUnitLabel.Text = "ms";
 
-		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 2.5f, 8, 1);
+		noStopTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 2.5f, 8, 1);
+		noStopTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		noStopTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 2.5f, 4, 1);
+		noStopTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
+		noStopTooEarlyNumericUpDown.Minimum = 0;
+		noStopTooEarlyNumericUpDown.Value = 1;
+		noStopTooEarlyNumericUpDown.Increment = 0.1M;
+		noStopTooEarlyNumericUpDown.DecimalPlaces = 2;
+		noStopTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 1.5f, 1);
+		noStopTooEarlyUnitLabel.Text = "m";
+		noStopTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		accelSampleIntervalTitleLabel = CreateControl<Label>(configGroupBox, 14, 2.5f, 8, 1);
 		accelSampleIntervalTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 2.5f, 4, 1);
+		accelSampleIntervalNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 2.5f, 4, 1);
 		accelSampleIntervalNumericUpDown.Maximum = Decimal.MaxValue;
 		accelSampleIntervalNumericUpDown.Minimum = 0;
 		accelSampleIntervalNumericUpDown.Value = 300;
 		accelSampleIntervalNumericUpDown.Increment = 10;
-		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 2.5f, 1.5f, 1);
+		accelSampleIntervalUnitLabel = CreateControl<Label>(configGroupBox, 26, 2.5f, 1.5f, 1);
 		accelSampleIntervalUnitLabel.Text = "ms";
 		accelSampleIntervalUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
@@ -268,29 +282,29 @@ class IWannaUseBrakeWell: Form
 		accelRecordLimitUnitLabel.Text = "ms";
 		accelRecordLimitUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-		noStopTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 4, 8, 1);
-		noStopTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		noStopTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 4, 4, 1);
-		noStopTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
-		noStopTooEarlyNumericUpDown.Minimum = 0;
-		noStopTooEarlyNumericUpDown.Value = 1;
-		noStopTooEarlyNumericUpDown.Increment = 0.1M;
-		noStopTooEarlyNumericUpDown.DecimalPlaces = 2;
-		noStopTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 4, 1.5f, 1);
-		noStopTooEarlyUnitLabel.Text = "m";
-		noStopTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
-
-		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 14, 4, 8, 1);
+		noBelowLimitTooEarlyTitleLabel = CreateControl<Label>(configGroupBox, 0.5f, 4, 8, 1);
 		noBelowLimitTooEarlyTitleLabel.TextAlign = ContentAlignment.MiddleRight;
-		noBelowLimitTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 4, 4, 1);
+		noBelowLimitTooEarlyNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 8.5f, 4, 4, 1);
 		noBelowLimitTooEarlyNumericUpDown.Maximum = Decimal.MaxValue;
 		noBelowLimitTooEarlyNumericUpDown.Minimum = 0;
 		noBelowLimitTooEarlyNumericUpDown.Value = 1;
 		noBelowLimitTooEarlyNumericUpDown.Increment = 0.1M;
 		noBelowLimitTooEarlyNumericUpDown.DecimalPlaces = 2;
-		noBelowLimitTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 26, 4, 1, 1);
+		noBelowLimitTooEarlyUnitLabel = CreateControl<Label>(configGroupBox, 12.5f, 4, 1, 1);
 		noBelowLimitTooEarlyUnitLabel.Text = "m";
 		noBelowLimitTooEarlyUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+		speedLimitOffsetTitleLabel = CreateControl<Label>(configGroupBox, 14, 4, 8, 1);
+		speedLimitOffsetTitleLabel.TextAlign = ContentAlignment.MiddleRight;
+		speedLimitOffsetNumericUpDown = CreateControl<NumericUpDown>(configGroupBox, 22, 4, 4, 1);
+		speedLimitOffsetNumericUpDown.Maximum = Decimal.MaxValue;
+		speedLimitOffsetNumericUpDown.Minimum = 0;
+		speedLimitOffsetNumericUpDown.Value = 1;
+		speedLimitOffsetNumericUpDown.Increment = 0.1M;
+		speedLimitOffsetNumericUpDown.DecimalPlaces = 2;
+		speedLimitOffsetUnitLabel = CreateControl<Label>(configGroupBox, 26, 4, 1.5f, 1);
+		speedLimitOffsetUnitLabel.Text = "m";
+		speedLimitOffsetUnitLabel.TextAlign = ContentAlignment.MiddleLeft;
 
 		speedLimitMarginTitleLabel = CreateControl<Label>(configGroupBox, 27, 4, 7, 1);
 		speedLimitMarginTitleLabel.TextAlign = ContentAlignment.MiddleRight;
@@ -347,10 +361,11 @@ class IWannaUseBrakeWell: Form
 			brakeOnlyWithManualCheckBox.Text = "Only with manual braking";
 			allowUsingEBCheckBox.Text = "Allow to use EB";
 			noConsecutiveOperationTitleLabel.Text = "Control repeat limit";
+			noStopTooEarlyTitleLabel.Text = "Early stop limit";
 			accelSampleIntervalTitleLabel.Text = "Measuring time for accel.";
 			accelRecordLimitTitleLabel.Text = "Accel. recording limit";
-			noStopTooEarlyTitleLabel.Text = "Early stop limit";
 			noBelowLimitTooEarlyTitleLabel.Text = "Early limit meeting limit";
+			speedLimitOffsetTitleLabel.Text = "Speed limit pos. offset";
 			speedLimitMarginTitleLabel.Text = "Speed limit margin";
 		}
 		else
@@ -379,10 +394,11 @@ class IWannaUseBrakeWell: Form
 			brakeOnlyWithManualCheckBox.Text = "手動ブレーキ時のみ";
 			allowUsingEBCheckBox.Text = "EBの使用を許可";
 			noConsecutiveOperationTitleLabel.Text = "連続操作制限";
+			noStopTooEarlyTitleLabel.Text = "停車制限";
 			accelSampleIntervalTitleLabel.Text = "加速度サンプリング間隔";
 			accelRecordLimitTitleLabel.Text = "加速度記録制限";
-			noStopTooEarlyTitleLabel.Text = "停車制限";
 			noBelowLimitTooEarlyTitleLabel.Text = "速度制限充足制限";
+			speedLimitOffsetTitleLabel.Text = "速度制限位置オフセット";
 			speedLimitMarginTitleLabel.Text = "速度制限余裕";
 		}
 	}
@@ -566,6 +582,8 @@ class IWannaUseBrakeWell: Form
 		speedLimit -= (float)speedLimitMarginNumericUpDown.Value;
 		if (speedLimit <= 0) speedLimit = 0;
 		speedLimit /= 3.6f;
+		speedLimitDistance -= (float)speedLimitOffsetNumericUpDown.Value;
+		if (speedLimitDistance <= 0) speedLimitDistance = 0;
 		currentLimitDistanceLabel.Text = string.Format("{0:0.00} m", speedLimitDistance);
 		float toBelowLimit;
 		if (currentSpeed <= speedLimit)
