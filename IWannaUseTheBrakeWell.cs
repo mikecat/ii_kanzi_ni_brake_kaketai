@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using TrainCrew;
 
-class IWannaUseBrakeWell: Form
+class IWannaUseTheBrakeWell: Form
 {
 	private static readonly string VERSION = "1.0.0";
 
@@ -13,7 +13,7 @@ class IWannaUseBrakeWell: Form
 	{
 		Application.EnableVisualStyles();
 		Application.SetCompatibleTextRenderingDefault(false);
-		Application.Run(new IWannaUseBrakeWell());
+		Application.Run(new IWannaUseTheBrakeWell());
 	}
 
 	private const int fontSize = 16, gridSize = 22;
@@ -128,7 +128,7 @@ class IWannaUseBrakeWell: Form
 
 	private int prevATOBrake = -99, currentATOBrake = 0;
 
-	public IWannaUseBrakeWell()
+	public IWannaUseTheBrakeWell()
 	{
 		this.Font = new Font("MS UI Gothic", fontSize, GraphicsUnit.Pixel);
 		this.FormBorderStyle = FormBorderStyle.FixedSingle;
