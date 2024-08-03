@@ -235,8 +235,8 @@ class IWannaUseBrakeWell: Form
 		configGroupBox = CreateControl<GroupBox>(mainPanel, 0.5f, 12.5f, 39.5f, 5.5f);
 
 		useAutoBrakeCheckBox = CreateControl<CheckBox>(configGroupBox, 0.5f, 1, 9, 1);
-		brakeOnlyWithManualCheckBox = CreateControl<CheckBox>(configGroupBox, 9.5f, 1, 9, 1);
-		allowUsingEBCheckBox = CreateControl<CheckBox>(configGroupBox, 18.5f, 1, 8, 1);
+		brakeOnlyWithManualCheckBox = CreateControl<CheckBox>(configGroupBox, 9.5f, 1, 10, 1);
+		allowUsingEBCheckBox = CreateControl<CheckBox>(configGroupBox, 19.5f, 1, 7, 1);
 
 		noConsecutiveOperationTitleLabel = CreateControl<Label>(configGroupBox, 27, 1, 7, 1);
 		noConsecutiveOperationTitleLabel.TextAlign = ContentAlignment.MiddleRight;
@@ -358,7 +358,7 @@ class IWannaUseBrakeWell: Form
 			currentBelowLimitPredictTitleLabel.Text = "Estimated dist. to meet limit";
 			configGroupBox.Text = "Configuration";
 			useAutoBrakeCheckBox.Text = "Use automatic braking";
-			brakeOnlyWithManualCheckBox.Text = "Only with manual braking";
+			brakeOnlyWithManualCheckBox.Text = "Only when manually braking";
 			allowUsingEBCheckBox.Text = "Allow to use EB";
 			noConsecutiveOperationTitleLabel.Text = "Control repeat limit";
 			noStopTooEarlyTitleLabel.Text = "Early stop limit";
