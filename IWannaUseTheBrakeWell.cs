@@ -132,6 +132,7 @@ class IWannaUseBrakeWell: Form
 		this.Font = new Font("MS UI Gothic", fontSize, GraphicsUnit.Pixel);
 		this.FormBorderStyle = FormBorderStyle.FixedSingle;
 		this.MaximizeBox = false;
+		this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 		Font doubleFont = new Font("MS UI Gothic", fontSize * 2, GraphicsUnit.Pixel);
 
 		SuspendLayout();
