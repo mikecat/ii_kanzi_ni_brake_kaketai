@@ -931,9 +931,7 @@ class IWannaUseTheBrakeWell: Form
 		{
 			if (brakeChangeAllowed)
 			{
-				// 次に考えるべきなのは (速度制限ポイントではなく) 停車ポイントか？
-				bool isNextComingStop = distance.HasValue && (toBelowLimit == 0 || distance.Value < speedLimitDistance);
-				if (isNextComingStop ? (!distance.HasValue || distance.Value >= toStop) : speedLimitDistance >= toBelowLimit)
+				if ((!distance.HasValue || distance.Value >= toStop) && speedLimitDistance >= toBelowLimit)
 				{
 					// 今のままで目標地点かそれより前に条件を満たせそう
 					if (currentBrake > 0)
@@ -948,12 +946,11 @@ class IWannaUseTheBrakeWell: Form
 								break;
 							}
 						}
-						if (isNextComingStop ?
+						if (((nextToBelowLimit.HasValue && speedLimitDistance >= nextToBelowLimit.Value) ||
+							speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit ||
+							(!nextToBelowLimit.HasValue && toBelowLimit == 0)) &&
 							(!distance.HasValue || (nextToStop.HasValue && distance.Value >= nextToStop.Value) ||
-								distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop) :
-							((nextToBelowLimit.HasValue && speedLimitDistance >= nextToBelowLimit.Value) ||
-								speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit ||
-								(!nextToBelowLimit.HasValue && toBelowLimit == 0)))
+							distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop))
 						{
 							// ブレーキを弱めても条件を満たせそうなら、弱める
 							// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
@@ -980,9 +977,8 @@ class IWannaUseTheBrakeWell: Form
 						// 停車の場合、ブレーキを強めても基準内に止まれそうまたは不明な場合のみ、強める
 						// 速度制限の場合、ブレーキを強めても充足が基準内になりそうまたは不明な場合のみ、強める
 						if (!nextToStop.HasValue || !nextToBelowLimit.HasValue ||
-							(isNextComingStop ?
-								(distance.HasValue && distance.Value - (float)noStopTooEarlyNumericUpDown.Value <= nextToStop.Value) :
-								speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value <= nextToBelowLimit.Value))
+							(speedLimitDistance < toBelowLimit && speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value <= nextToBelowLimit.Value) ||
+							(distance.HasValue && distance.Value < toStop && distance.Value - (float)noStopTooEarlyNumericUpDown.Value <= nextToStop.Value))
 						{
 							currentATOBrake = currentBrake + 1;
 						}
