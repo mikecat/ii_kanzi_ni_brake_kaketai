@@ -703,7 +703,7 @@ class IWannaUseTheBrakeWell: Form
 		}
 		else
 		{
-			return (currentSpeed * currentSpeed - targetSpeed * targetSpeed) / (2 * -currentAccel.Value);
+			return (targetSpeed * targetSpeed - currentSpeed * currentSpeed) / (2 * currentAccel.Value);
 		}
 	}
 
