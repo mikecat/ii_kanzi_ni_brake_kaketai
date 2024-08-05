@@ -210,8 +210,18 @@ class IWannaUseTheBrakeWell: Form
 	private readonly Queue<SpeedInfo> speedInfoQueue = new Queue<SpeedInfo>();
 	private SpeedInfo? accelSample = null;
 	private float?[] accelByBrakes = new float?[9];
-	private float?[] toStopByBrakes = new float?[9];
-	private float?[] toBelowLimitByBrakes = new float?[9];
+
+	private struct SpeedLimit
+	{
+		public readonly float Limit;
+		public readonly float Distance;
+
+		public SpeedLimit(float limit, float distance)
+		{
+			Limit = limit;
+			Distance = distance;
+		}
+	}
 
 	private struct HiddenSpeedLimit
 	{
@@ -681,6 +691,22 @@ class IWannaUseTheBrakeWell: Form
 		}
 	}
 
+	private static float DistanceToSatisfySpeed(float currentSpeed, float targetSpeed, float? currentAccel)
+	{
+		if (currentSpeed <= targetSpeed)
+		{
+			return 0;
+		}
+		else if (!currentAccel.HasValue || currentAccel.Value >= 0)
+		{
+			return Single.PositiveInfinity;
+		}
+		else
+		{
+			return (currentSpeed * currentSpeed - targetSpeed * targetSpeed) / (2 * -currentAccel.Value);
+		}
+	}
+
 	private void TickHandler(object sender, EventArgs e)
 	{
 		if (!trainCrewValid) return;
@@ -739,10 +765,7 @@ class IWannaUseTheBrakeWell: Form
 		{
 			currentDistanceLabel.Text = "#####.## m";
 		}
-		float toStop =
-			currentSpeed == 0 ? 0 :
-			currentAccel.HasValue && currentAccel.Value < 0 ? (currentSpeed * currentSpeed / (2 * -currentAccel.Value)) :
-			Single.PositiveInfinity;
+		float toStop = DistanceToSatisfySpeed(currentSpeed, 0, currentAccel);
 		if (toStop < 10000)
 		{
 			currentStopPredictLabel.Text = string.Format("{0:0.00} m", toStop);
@@ -753,14 +776,17 @@ class IWannaUseTheBrakeWell: Form
 		}
 
 		// 制限速度・制限開始までの距離、制限を満たすまでの距離を求める
-		float speedLimit, speedLimitDistance;
+		List<SpeedLimit> speedLimitList = new List<SpeedLimit>();
+		speedLimitList.Add(new SpeedLimit(trainState.speedLimit, 0)); // 現在の制限速度
+		float firstSpeedLimit, firstSpeedLimitDistance;
 		if (trainState.nextSpeedLimit >= 0)
 		{
-			speedLimit = trainState.nextSpeedLimit;
-			speedLimitDistance = trainState.nextSpeedLimitDistance;
+			firstSpeedLimit = trainState.nextSpeedLimit;
+			firstSpeedLimitDistance = trainState.nextSpeedLimitDistance;
+			speedLimitList.Add(new SpeedLimit(trainState.nextSpeedLimit, trainState.nextSpeedLimitDistance));
 			// 手前の制限速度予告が奥の制限速度予告で隠れたケースを検出する
-			if (prevSpeedLimit >= 0 && speedLimit >= 0 &&
-				prevSpeedLimit >= speedLimit && prevSpeedLimitDistance < speedLimitDistance)
+			if (prevSpeedLimit >= 0 && trainState.nextSpeedLimit >= 0 && prevDistance > trainState.nextUIDistance &&
+				prevSpeedLimit >= trainState.nextSpeedLimit && prevSpeedLimitDistance < trainState.nextSpeedLimitDistance)
 			{
 				hiddenSpeedLimits.Add(new HiddenSpeedLimit(prevSpeedLimit, prevSpeedLimitDistance - prevDistance));
 			}
@@ -776,44 +802,40 @@ class IWannaUseTheBrakeWell: Form
 				}
 				else
 				{
-					// 一番手前の制限速度を適用する
-					if (hiddenSpeedLimitDistance < speedLimitDistance)
+					// 制限速度を適用する
+					speedLimitList.Add(new SpeedLimit(hiddenSpeedLimits[i].SpeedLimit, hiddenSpeedLimitDistance));
+					// 一番手前の制限速度を表示する
+					if (hiddenSpeedLimitDistance < firstSpeedLimitDistance)
 					{
-						speedLimit = hiddenSpeedLimits[i].SpeedLimit;
-						speedLimitDistance = hiddenSpeedLimitDistance;
+						firstSpeedLimit = hiddenSpeedLimits[i].SpeedLimit;
+						firstSpeedLimitDistance = hiddenSpeedLimitDistance;
 					}
 				}
 			}
 		}
 		else
 		{
-			speedLimit = trainState.speedLimit;
-			speedLimitDistance = 0;
+			firstSpeedLimit = trainState.speedLimit;
+			firstSpeedLimitDistance = 0;
 			// 制限速度予告が出ていないので、隠れた制限速度予告も無いはず
 			hiddenSpeedLimits.Clear();
 		}
-		speedLimit -= (float)speedLimitMarginNumericUpDown.Value;
-		if (speedLimit <= 0) speedLimit = 0;
-		speedLimit /= 3.6f;
-		speedLimitDistance -= (float)speedLimitOffsetNumericUpDown.Value;
-		if (speedLimitDistance <= 0) speedLimitDistance = 0;
-		currentLimitDistanceLabel.Text = string.Format("{0:0.00} m", speedLimitDistance);
-		float toBelowLimit;
-		if (currentSpeed <= speedLimit)
+		float speedLimitMargin = (float)speedLimitMarginNumericUpDown.Value;
+		float speedLimitOffset = (float)speedLimitOffsetNumericUpDown.Value;
+		firstSpeedLimit = Math.Max(firstSpeedLimit - speedLimitMargin, 0.0f) / 3.6f;
+		firstSpeedLimitDistance = Math.Max(firstSpeedLimitDistance - speedLimitOffset, 0.0f);
+		for (int i = 0; i < speedLimitList.Count; i++)
 		{
-			toBelowLimit = 0;
+			speedLimitList[i] = new SpeedLimit(
+				Math.Max(speedLimitList[i].Limit - speedLimitMargin, 0.0f) / 3.6f,
+				Math.Max(speedLimitList[i].Distance - speedLimitOffset, 0.0f)
+			);
 		}
-		else if (!currentAccel.HasValue || currentAccel.Value >= 0)
+		currentLimitDistanceLabel.Text = string.Format("{0:0.00} m", firstSpeedLimitDistance);
+		float toBelowFirstLimit = DistanceToSatisfySpeed(currentSpeed, firstSpeedLimit, currentAccel);
+		if (toBelowFirstLimit < 10000)
 		{
-			toBelowLimit = Single.PositiveInfinity;
-		}
-		else
-		{
-			toBelowLimit = (currentSpeed * currentSpeed - speedLimit * speedLimit) / (2 * -currentAccel.Value);
-		}
-		if (toBelowLimit < 10000)
-		{
-			currentBelowLimitPredictLabel.Text = string.Format("{0:0.00} m", toBelowLimit);
+			currentBelowLimitPredictLabel.Text = string.Format("{0:0.00} m", toBelowFirstLimit);
 		}
 		else
 		{
@@ -851,8 +873,6 @@ class IWannaUseTheBrakeWell: Form
 				for (int i = 0; i < 9; i++)
 				{
 					accelByBrakes[i] = null;
-					toStopByBrakes[i] = null;
-					toBelowLimitByBrakes[i] = null;
 				}
 			}
 		}
@@ -901,24 +921,16 @@ class IWannaUseTheBrakeWell: Form
 			}
 			if (accelByBrakes[i].HasValue)
 			{
-				toStopByBrakes[i] =
-					currentSpeed == 0 ? 0 :
-					accelByBrakes[i].Value < 0 ? (currentSpeed * currentSpeed / (2 * -accelByBrakes[i].Value)) :
-					Single.PositiveInfinity;
-				toBelowLimitByBrakes[i] =
-					currentSpeed <= speedLimit ? 0 :
-					accelByBrakes[i].Value < 0 ? ((currentSpeed * currentSpeed - speedLimit * speedLimit) / (2 * -accelByBrakes[i].Value)) :
-					Single.PositiveInfinity;
+				float toStopByBrake = DistanceToSatisfySpeed(currentSpeed, 0, accelByBrakes[i].Value);
+				float toBelowFirstLimitByBrake = DistanceToSatisfySpeed(currentSpeed, firstSpeedLimit, accelByBrakes[i].Value);
 				brakeInfoAccelLabel[i].Text = string.Format("{0:0.00} m/s²", accelByBrakes[i]);
-				brakeInfoStopDistLabel[i].Text = toStopByBrakes[i].Value < 10000 ?
-					string.Format("{0:0.00} m", toStopByBrakes[i]) : "∞ m";
-				brakeInfoLimitDistLabel[i].Text = toBelowLimitByBrakes[i].Value < 10000 ?
-					string.Format("{0:0.00} m", toBelowLimitByBrakes[i]) : "∞ m";
+				brakeInfoStopDistLabel[i].Text = toStopByBrake < 10000 ?
+					string.Format("{0:0.00} m", toStopByBrake) : "∞ m";
+				brakeInfoLimitDistLabel[i].Text = toBelowFirstLimitByBrake < 10000 ?
+					string.Format("{0:0.00} m", toBelowFirstLimitByBrake) : "∞ m";
 			}
 			else
 			{
-				toStopByBrakes[i] = null;
-				toBelowLimitByBrakes[i] = null;
 				brakeInfoAccelLabel[i].Text = "###.## m/s²";
 				brakeInfoStopDistLabel[i].Text = "#####.## m";
 				brakeInfoLimitDistLabel[i].Text = "#####.## m";
@@ -931,29 +943,51 @@ class IWannaUseTheBrakeWell: Form
 		{
 			if (brakeChangeAllowed)
 			{
-				if ((!distance.HasValue || distance.Value >= toStop) && speedLimitDistance >= toBelowLimit)
+				float noStopTooEarly = (float)noStopTooEarlyNumericUpDown.Value;
+				float noBelowLimitTooEarly = (float)noBelowLimitTooEarlyNumericUpDown.Value;
+				bool willStop = !distance.HasValue || distance.Value >= toStop;
+				bool willMeetLimit = true;
+				foreach (SpeedLimit speedLimit in speedLimitList)
+				{
+					willMeetLimit = willMeetLimit &&
+						speedLimit.Distance >= DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, currentAccel);
+				}
+				if (willStop && willMeetLimit)
 				{
 					// 今のままで目標地点かそれより前に条件を満たせそう
 					if (currentBrake > 0)
 					{
-						float? nextToStop = null, nextToBelowLimit = null;
+						float? nextAccel = null;
 						for (int i = currentBrake - 1; i >= 0; i--)
 						{
-							if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+							if (accelByBrakes[i].HasValue)
 							{
-								nextToStop = toStopByBrakes[i];
-								nextToBelowLimit = toBelowLimitByBrakes[i];
+								nextAccel = accelByBrakes[i];
 								break;
 							}
 						}
-						if (((nextToBelowLimit.HasValue && speedLimitDistance >= nextToBelowLimit.Value) ||
-							speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value > toBelowLimit ||
-							(!nextToBelowLimit.HasValue && toBelowLimit == 0)) &&
-							(!distance.HasValue || (nextToStop.HasValue && distance.Value >= nextToStop.Value) ||
-							distance.Value - (float)noStopTooEarlyNumericUpDown.Value > toStop))
+						// ブレーキを弱めても条件を満たせそうなら、弱める
+						// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
+						bool shouldWeakenBrakeByStop =
+							!distance.HasValue ||
+							(nextAccel.HasValue && distance.Value > DistanceToSatisfySpeed(currentSpeed, 0, nextAccel)) ||
+							distance.Value - noStopTooEarly > toStop;
+						bool shouldWeakenBrakeBySpeedLimit = true;
+						foreach (SpeedLimit speedLimit in speedLimitList)
 						{
-							// ブレーキを弱めても条件を満たせそうなら、弱める
-							// または、今のままだと基準より手前で停車または制限充足しそうなら、弱める
+							shouldWeakenBrakeBySpeedLimit = shouldWeakenBrakeBySpeedLimit && (
+									(nextAccel.HasValue ?
+										// ブレーキを弱めても制限充足しそう？
+										speedLimit.Distance >= DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, nextAccel) :
+										// ブレーキを弱めたときの効果は不明だが、現在全ての制限をすでに充足している (減速不要)？
+										DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, currentAccel) == 0
+									) ||
+									// 今のままだと基準より手前で制限充足しそう？
+									speedLimit.Distance - noBelowLimitTooEarly > DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, currentAccel)
+								);
+						}
+						if (shouldWeakenBrakeByStop && shouldWeakenBrakeBySpeedLimit)
+						{
 							currentATOBrake = currentBrake - 1;
 						}
 					}
@@ -964,21 +998,30 @@ class IWannaUseTheBrakeWell: Form
 					// ブレーキを強くする (強くできる場合)
 					if (currentBrake < (allowUsingEBCheckBox.Checked || carModel3020MenuItem.Checked ? 8 : 7))
 					{
-						float? nextToStop = null, nextToBelowLimit = null;
+						float? nextAccel = null;
 						for (int i = currentBrake + 1; i < 9; i++)
 						{
-							if (toStopByBrakes[i].HasValue && toBelowLimitByBrakes[i].HasValue)
+							if (accelByBrakes[i].HasValue)
 							{
-								nextToStop = toStopByBrakes[i];
-								nextToBelowLimit = toBelowLimitByBrakes[i];
+								nextAccel = accelByBrakes[i];
 								break;
 							}
 						}
-						// 停車の場合、ブレーキを強めても基準内に止まれそうまたは不明な場合のみ、強める
-						// 速度制限の場合、ブレーキを強めても充足が基準内になりそうまたは不明な場合のみ、強める
-						if (!nextToStop.HasValue || !nextToBelowLimit.HasValue ||
-							(speedLimitDistance < toBelowLimit && speedLimitDistance - (float)noBelowLimitTooEarlyNumericUpDown.Value <= nextToBelowLimit.Value) ||
-							(distance.HasValue && distance.Value < toStop && distance.Value - (float)noStopTooEarlyNumericUpDown.Value <= nextToStop.Value))
+						// 過走しそうな場合、ブレーキを強めても基準内に止まれそうまたは不明な場合のみ、強める
+						bool shouldStrengthenByStop = !nextAccel.HasValue ||
+							(distance.HasValue && distance.Value < toStop && distance.Value - noStopTooEarly <= DistanceToSatisfySpeed(currentSpeed, 0, nextAccel));
+						// 制限速度超過しそうな場合、ブレーキを強めても制限充足が基準内になりそうまたは不明な場合のみ、強める
+						bool shouldStrengthenBySpeedLimit = false;
+						if (nextAccel.HasValue)
+						{
+							foreach (SpeedLimit speedLimit in speedLimitList)
+							{
+								shouldStrengthenBySpeedLimit = shouldStrengthenBySpeedLimit ||
+									(speedLimit.Distance < DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, currentAccel) &&
+									speedLimit.Distance - noBelowLimitTooEarly <= DistanceToSatisfySpeed(currentSpeed, speedLimit.Limit, nextAccel));
+							}
+						}
+						if (shouldStrengthenByStop || shouldStrengthenBySpeedLimit)
 						{
 							currentATOBrake = currentBrake + 1;
 						}
