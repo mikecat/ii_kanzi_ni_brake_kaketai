@@ -13,6 +13,10 @@
 
 ![スクリーンショット](images/screenshot.png)
 
+## デモ動画
+
+[【TRAIN CREW】何って…止まるまでの距離に応じてブレーキを調整しただけだが？ - YouTube](https://www.youtube.com/watch?v=-neBXJ7l6fg) (2分24秒)
+
 ## 仕組み
 
 ### 速度・加速度から停車・速度制限充足までの走行距離を求める
