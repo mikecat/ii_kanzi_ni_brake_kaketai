@@ -191,17 +191,17 @@ class IWannaUseTheBrakeWell: Form
 	private Timer timer = null;
 	private bool trainCrewValid = false;
 	private int prevPower = -99, prevBrake = -99;
-	private float prevPowerChangedTime = 0, prevBrakeChangedTime = 0;
+	private double prevPowerChangedTime = 0, prevBrakeChangedTime = 0;
 	private bool prevGaming = false;
-	private float prevTime = -1, prevGameStartTime = 0;
+	private double prevTime = -1, prevGameStartTime = 0;
 	private string prevCarModel = null;
 
 	private struct SpeedInfo
 	{
-		public readonly float Time;
+		public readonly double Time;
 		public readonly float Speed;
 
-		public SpeedInfo(float time, float speed)
+		public SpeedInfo(double time, float speed)
 		{
 			Time = time;
 			Speed = speed;
@@ -722,7 +722,7 @@ class IWannaUseTheBrakeWell: Form
 		if (!trainCrewValid) return;
 		TrainState trainState = TrainCrewInput.GetTrainState();
 		GameState gameState = TrainCrewInput.gameState;
-		float currentTime = (float)trainState.NowTime.TotalMilliseconds;
+		double currentTime = trainState.NowTime.TotalMilliseconds;
 
 		// 車種の変化時、自動設定が有効なら設定に反映する
 		string carModel = trainState.CarStates.Count > 0 ? trainState.CarStates[0].CarModel : null;
@@ -742,7 +742,7 @@ class IWannaUseTheBrakeWell: Form
 		while (speedInfoQueue.Count > 0)
 		{
 			if (!accelSample.HasValue ||
-				currentTime - (float)accelSampleIntervalNumericUpDown.Value >= speedInfoQueue.Peek().Time)
+				currentTime - (double)accelSampleIntervalNumericUpDown.Value >= speedInfoQueue.Peek().Time)
 			{
 				accelSample = speedInfoQueue.Dequeue();
 			}
@@ -890,10 +890,10 @@ class IWannaUseTheBrakeWell: Form
 				}
 			}
 		}
-		float timeFromPowerChange = currentTime - prevPowerChangedTime;
-		float timeFromBrakeChange = currentTime - prevBrakeChangedTime;
-		float timeFromGameStart = currentTime - prevGameStartTime;
-		float timeFromLastAction =
+		double timeFromPowerChange = currentTime - prevPowerChangedTime;
+		double timeFromBrakeChange = currentTime - prevBrakeChangedTime;
+		double timeFromGameStart = currentTime - prevGameStartTime;
+		double timeFromLastAction =
 			Math.Min(timeFromPowerChange,
 			Math.Min(timeFromBrakeChange, timeFromGameStart));
 		bool brakeAllowed =
@@ -902,10 +902,10 @@ class IWannaUseTheBrakeWell: Form
 		bool normallyRunning = brakeAllowed && currentGaming;
 		bool brakeChangeAllowed =
 			normallyRunning && // 通常の走行中 (前進、マスコン切、ゲーム中)
-			timeFromLastAction >= (float)noConsecutiveOperationNumericUpDown.Value; // 操作直後でない
+			timeFromLastAction >= (double)noConsecutiveOperationNumericUpDown.Value; // 操作直後でない
 		bool brakeRecordAllowed =
 			normallyRunning && // 通常の走行中 (前進、マスコン切、ゲーム中)
-			timeFromLastAction >= (float)accelRecordLimitNumericUpDown.Value; // 操作直後でない
+			timeFromLastAction >= (double)accelRecordLimitNumericUpDown.Value; // 操作直後でない
 		if (currentAccel.HasValue && 0 <= currentBrake && currentBrake < 9 &&
 			brakeRecordAllowed && currentSpeed >= 1)
 		{
