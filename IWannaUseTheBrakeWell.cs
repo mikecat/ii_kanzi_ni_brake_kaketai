@@ -656,7 +656,7 @@ class IWannaUseTheBrakeWell: Form
 		TrainCrewInput.Init();
 		trainCrewValid = true;
 		timer = new Timer();
-		timer.Interval = 15;
+		timer.Interval = 50;
 		timer.Tick += TickHandler;
 		timer.Start();
 	}
