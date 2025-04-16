@@ -3,13 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 using TrainCrew;
 
 class IWannaUseTheBrakeWell: Form
 {
-	private static readonly string VERSION = "1.0.0";
-
 	public static void Main()
 	{
 		Application.EnableVisualStyles();
@@ -139,6 +138,8 @@ class IWannaUseTheBrakeWell: Form
 		return control;
 	}
 
+	private readonly string versionString = "";
+
 	private Panel mainPanel;
 
 	private MenuStrip mainMenuStrip;
@@ -241,6 +242,18 @@ class IWannaUseTheBrakeWell: Form
 
 	public IWannaUseTheBrakeWell()
 	{
+		AssemblyName assemblyName = Assembly.GetExecutingAssembly().GetName();
+		Version assemblyVersion = assemblyName.Version;
+		if (assemblyVersion != null)
+		{
+			versionString = string.Format(
+				" {0}.{1}.{2}",
+				assemblyVersion.Major,
+				assemblyVersion.Minor,
+				assemblyVersion.Build
+			);
+		}
+
 		this.Font = new Font("MS UI Gothic", fontSize, GraphicsUnit.Pixel);
 		this.FormBorderStyle = FormBorderStyle.FixedSingle;
 		this.MaximizeBox = false;
@@ -528,7 +541,7 @@ class IWannaUseTheBrakeWell: Form
 	{
 		if (languageEnglishMenuItem.Checked)
 		{
-			this.Text = "I wanna use the brake well " + VERSION;
+			this.Text = "I wanna use the brake well" + versionString;
 			carModelMenuItem.Text = "Car model (&C)";
 			carModelAutoMenuItem.Text = "Auto (&A)";
 			carModelOtherMenuItem.Text = "Other (&O)";
@@ -561,7 +574,7 @@ class IWannaUseTheBrakeWell: Form
 		}
 		else
 		{
-			this.Text = "いい感じにブレーキをかけたい " + VERSION;
+			this.Text = "いい感じにブレーキをかけたい" + versionString;
 			carModelMenuItem.Text = "車種 (&C)";
 			carModelAutoMenuItem.Text = "自動 (&A)";
 			carModelOtherMenuItem.Text = "その他 (&O)";
