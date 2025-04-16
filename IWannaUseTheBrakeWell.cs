@@ -457,7 +457,7 @@ class IWannaUseTheBrakeWell: Form
 		if (key != null)
 		{
 			string languageData = RegistryGetStringValue(key, LanguageValueName);
-			if (LanguageEnglishData.Equals(languageData))
+			if (languageData == LanguageEnglishData)
 			{
 				languageEnglishMenuItem.Checked = true;
 			}
@@ -468,11 +468,11 @@ class IWannaUseTheBrakeWell: Form
 			int? carModelAutoData = RegistryGetIntValue(key, CarModelAutoValueName);
 			carModelAutoMenuItem.Checked = carModelAutoData.HasValue && carModelAutoData.Value != 0;
 			string carModelData = RegistryGetStringValue(key, CarModelValueName);
-			if (CarModel4000Data.Equals(carModelData))
+			if (carModelData == CarModel4000Data)
 			{
 				CarModelSelectorClickHandler(carModel4000MenuItem, null);
 			}
-			else if (CarModel3020Data.Equals(carModelData))
+			else if (carModelData == CarModel3020Data)
 			{
 				CarModelSelectorClickHandler(carModel3020MenuItem, null);
 			}
@@ -729,11 +729,11 @@ class IWannaUseTheBrakeWell: Form
 
 		// 車種の変化時、自動設定が有効なら設定に反映する
 		string carModel = trainState.CarStates.Count > 0 ? trainState.CarStates[0].CarModel : null;
-		if (carModelAutoMenuItem.Checked && carModel != null && !carModel.Equals(prevCarModel))
+		if (carModelAutoMenuItem.Checked && carModel != null && prevCarModel != carModel)
 		{
 			object newItemToCheck =
-				"4000".Equals(carModel) || "4000R".Equals(carModel) ? carModel4000MenuItem :
-				"3020".Equals(carModel) ? carModel3020MenuItem :
+				carModel == "4000" || carModel == "4000R" ? carModel4000MenuItem :
+				carModel == "3020" ? carModel3020MenuItem :
 				carModelOtherMenuItem;
 			CarModelSelectorClickHandler(newItemToCheck, null);
 		}
@@ -769,7 +769,7 @@ class IWannaUseTheBrakeWell: Form
 		}
 
 		// 停車するべき位置までの距離と、停車しそうな位置までの距離を求める
-		float? distance = "停車".Equals(trainState.nextStopType) || "運転停車".Equals(trainState.nextStopType) ? (float?)trainState.nextUIDistance : null;
+		float? distance = trainState.nextStopType == "停車" || trainState.nextStopType == "運転停車" ? (float?)trainState.nextUIDistance : null;
 		if (distance.HasValue)
 		{
 			currentDistanceLabel.Text = string.Format("{0:0.00} m", distance);
