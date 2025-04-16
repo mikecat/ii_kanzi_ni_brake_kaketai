@@ -277,7 +277,7 @@ class IWannaUseTheBrakeWell: Form
 		carModel4000MenuItem = new ToolStripMenuItem();
 		carModel4000MenuItem.Text = "4000 / 4000R (&4)";
 		carModel3020MenuItem = new ToolStripMenuItem();
-		carModel3020MenuItem.Text = "3020 (&3)";
+		carModel3020MenuItem.Text = "3000 / 3020 (&3)";
 		carModelOtherMenuItem = new ToolStripMenuItem();
 		carModelMenuItem.DropDownItems.Add(carModelAutoMenuItem);
 		carModelMenuItem.DropDownItems.Add(carModelSeparator);
@@ -733,7 +733,7 @@ class IWannaUseTheBrakeWell: Form
 		{
 			object newItemToCheck =
 				carModel == "4000" || carModel == "4000R" ? carModel4000MenuItem :
-				carModel == "3020" ? carModel3020MenuItem :
+				carModel == "3000" || carModel == "3020" ? carModel3020MenuItem :
 				carModelOtherMenuItem;
 			CarModelSelectorClickHandler(newItemToCheck, null);
 		}
